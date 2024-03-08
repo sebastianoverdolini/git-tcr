@@ -72,19 +72,20 @@ mod tcr_tests
 #[cfg(test)]
 mod file_config_tests
 {
+    use std::fs::{create_dir_all, remove_dir_all, write};
     use crate::config;
 
     #[test]
     fn it_returns_the_content_of_the_config_if_the_file_is_present_in_the_current_location()
     {
-        std::fs::create_dir_all("test-env").expect("TODO: panic message");
-        std::fs::write("test-env/tcr.config", "npm test\n").expect("TODO: panic message");
+        create_dir_all("test-env").expect("TODO: panic message");
+        write("test-env/tcr.config", "npm test\n").expect("TODO: panic message");
 
         let config = config(String::from("./test-env"));
         assert!(config.is_some());
         assert_eq!(config.unwrap(), "npm test");
 
-        std::fs::remove_dir_all("test-env").expect("TODO: panic message");
+        remove_dir_all("test-env").expect("TODO: panic message");
     }
 
     #[test]
