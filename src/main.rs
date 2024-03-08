@@ -44,8 +44,10 @@ mod tests
         {
             return Some(String::from("cargo test"))
         }
+        let result = tcr(test_conf);
+        assert!(result.is_ok());
         assert_eq!(
-            tcr(test_conf).expect(""),
+            result.unwrap(),
             "cargo test && git add . && git commit -m WIP || git reset --hard");
     }
 
