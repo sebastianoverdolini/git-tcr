@@ -2,21 +2,28 @@ extern crate core;
 
 use std::io;
 use std::io::Write;
+use std::path::Path;
 use std::process::Command;
 
 fn main()
 {
+    let tcr = tcr(|| config(String::from("."))).expect("");
     let output = Command::new("sh")
         .arg("-c")
-        .arg(tcr(config).expect(""))
+        .arg(tcr)
         .output()
         .expect("failed to execute process");
     io::stdout().write_all(&output.stdout).unwrap()
 }
 
-fn config() -> Option<String>
+fn config(location: String) -> Option<String>
 {
-    Some(String::from("cargo test"))
+    let config_path = location.to_owned() + "/tcr.config";
+    if !Path::new(&(config_path)).exists()
+    {
+        return None;
+    }
+    return Some(String::from(std::fs::read_to_string(config_path).unwrap().lines().next().expect("")));
 }
 
 #[allow(unused)]
@@ -59,5 +66,30 @@ mod tcr_tests
             return None
         }
         assert!(tcr(no_conf).is_err());
+    }
+}
+
+#[cfg(test)]
+mod file_config_tests
+{
+    use crate::config;
+
+    #[test]
+    fn it_returns_the_content_of_the_config_if_the_file_is_present_in_the_current_location()
+    {
+        std::fs::create_dir_all("test-env").expect("TODO: panic message");
+        std::fs::write("test-env/tcr.config", "npm test\n").expect("TODO: panic message");
+
+        let config = config(String::from("./test-env"));
+        assert!(config.is_some());
+        assert_eq!(config.unwrap(), "npm test");
+
+        std::fs::remove_dir_all("test-env").expect("TODO: panic message");
+    }
+
+    #[test]
+    fn it_returns_none_if_the_config_file_is_not_present_in_the_current_location()
+    {
+        assert!(config(String::from("./test-env")).is_none());
     }
 }
