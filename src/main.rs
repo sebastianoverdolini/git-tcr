@@ -28,7 +28,7 @@ fn config(location: String) -> Option<String>
 
 fn tcr(config: fn() -> Option<String>) -> Result<String, String>
 {
-    if (config().is_none())
+    if config().is_none()
     {
         return Err(String::from(""))
     }
