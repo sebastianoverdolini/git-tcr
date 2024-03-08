@@ -26,7 +26,6 @@ fn config(location: String) -> Option<String>
     return Some(String::from(std::fs::read_to_string(config_path).unwrap().lines().next().expect("")));
 }
 
-#[allow(unused)]
 fn tcr(config: fn() -> Option<String>) -> Result<String, String>
 {
     if (config().is_none())
