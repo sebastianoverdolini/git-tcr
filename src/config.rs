@@ -4,7 +4,8 @@ use std::path::Path;
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config
 {
-    pub test: String
+    pub test: String,
+    pub before: Vec<String>
 }
 
 pub fn yaml_config(location: String) -> Option<Config>
@@ -32,7 +33,11 @@ mod yaml_config_tests
         create_dir_all("test-env").expect("TODO: panic message");
         let c = Config
         {
-            test: String::from("npm test")
+            test: String::from("npm test"),
+            before: vec![
+                String::from("pnpm tc"),
+                String::from("prettier --write .")
+            ]
         };
         let yaml = serde_yaml::to_string(&c).unwrap();
         write("test-env/tcr.yaml", yaml).expect("TODO: panic message");
