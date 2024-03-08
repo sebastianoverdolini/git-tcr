@@ -16,7 +16,7 @@ fn main()
 
 fn tcr() -> &'static str
 {
-    return "cargo test"
+    return "cargo test && git add . && git commit -m WIP || git reset --hard"
 }
 
 #[cfg(test)]
@@ -25,8 +25,8 @@ mod tests
     use crate::tcr;
 
     #[test]
-    fn it_runs_cargo_test()
+    fn it_runs_tcr()
     {
-        assert_eq!(tcr(), "cargo test");
+        assert_eq!(tcr(), "cargo test && git add . && git commit -m WIP || git reset --hard");
     }
 }
