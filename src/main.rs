@@ -32,7 +32,7 @@ fn tcr(config: fn() -> Option<String>) -> Result<String, String>
 }
 
 #[cfg(test)]
-mod tests
+mod tcr_tests
 {
     use crate::tcr;
 
