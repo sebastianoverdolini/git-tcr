@@ -9,6 +9,12 @@ To utilize TCR effectively, ensure you have the following prerequisites installe
 - **Git**: Version control system for tracking changes in your codebase.
 - **sh**: Unix shell for executing commands within the TCR workflow.
 
+## Installation
+### Cargo
+```
+cargo install --git https://github.com/sebastianoverdolini/tcr
+```
+
 ## Configuration
 To configure TCR for your project, follow these steps:
 
