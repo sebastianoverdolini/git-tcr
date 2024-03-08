@@ -16,17 +16,31 @@ fn main()
     io::stdout().write_all(&output.stdout).unwrap()
 }
 
-fn config(location: String) -> Option<String>
+#[derive(Debug, PartialEq)]
+struct Config
+{
+    test: String
+}
+
+fn config(location: String) -> Option<Config>
 {
     let config_path = location.to_owned() + "/tcr.config";
     if !Path::new(&(config_path)).exists()
     {
         return None;
     }
-    return Some(String::from(std::fs::read_to_string(config_path).unwrap().lines().next().expect("")));
+    return Some(Config
+    {
+        test: String::from(
+            std::fs::read_to_string(config_path)
+                .unwrap()
+                .lines()
+                .next()
+                .expect(""))
+    });
 }
 
-fn tcr(config: fn() -> Option<String>) -> Result<String, String>
+fn tcr(config: fn() -> Option<Config>) -> Result<String, String>
 {
     if config().is_none()
     {
@@ -34,21 +48,24 @@ fn tcr(config: fn() -> Option<String>) -> Result<String, String>
     }
     return Ok(format!(
         "{} && git add . && git commit -m WIP || git reset --hard",
-        config().expect("")));
+        config().unwrap().test));
 }
 
 #[cfg(test)]
 mod tcr_tests
 {
-    use crate::tcr;
+    use crate::{Config, tcr};
 
 
     #[test]
     fn it_runs_tcr()
     {
-        fn test_conf() -> Option<String>
+        fn test_conf() -> Option<Config>
         {
-            return Some(String::from("cargo test"))
+            return Some(Config
+            {
+                test: String::from("cargo test")
+            })
         }
         let result = tcr(test_conf);
         assert!(result.is_ok());
@@ -60,7 +77,7 @@ mod tcr_tests
     #[test]
     fn it_returns_error_if_configuration_is_not_present()
     {
-        fn no_conf() -> Option<String>
+        fn no_conf() -> Option<Config>
         {
             return None
         }
@@ -72,7 +89,7 @@ mod tcr_tests
 mod file_config_tests
 {
     use std::fs::{create_dir_all, remove_dir_all, write};
-    use crate::config;
+    use crate::{config, Config};
 
     #[test]
     fn it_returns_the_content_of_the_config_if_the_file_is_present_in_the_current_location()
@@ -82,7 +99,12 @@ mod file_config_tests
 
         let config = config(String::from("./test-env"));
         assert!(config.is_some());
-        assert_eq!(config.unwrap(), "npm test");
+        assert_eq!(
+            config.unwrap(),
+            Config
+            {
+                test: String::from("npm test")
+            });
 
         remove_dir_all("test-env").expect("TODO: panic message");
     }
