@@ -42,13 +42,14 @@ fn config(location: String) -> Option<Config>
 
 fn tcr(config: fn() -> Option<Config>) -> Result<String, String>
 {
-    if config().is_none()
+    let config = config();
+    if config.is_none()
     {
         return Err(String::from(""))
     }
     return Ok(format!(
         "{} && git add . && git commit -m WIP || git reset --hard",
-        config().unwrap().test));
+        config.unwrap().test));
 }
 
 #[cfg(test)]
