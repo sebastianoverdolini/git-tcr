@@ -4,6 +4,7 @@ use std::io;
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
+use serde::{Serialize, Deserialize};
 
 fn main()
 {
@@ -16,28 +17,22 @@ fn main()
     io::stdout().write_all(&output.stdout).unwrap()
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct Config
 {
-    test: String
+    pub test: String
 }
 
 fn config(location: String) -> Option<Config>
 {
-    let config_path = location.to_owned() + "/tcr.config";
+    let config_path = location.to_owned() + "/tcr.yaml";
     if !Path::new(&(config_path)).exists()
     {
         return None;
     }
-    return Some(Config
-    {
-        test: String::from(
-            std::fs::read_to_string(config_path)
-                .unwrap()
-                .lines()
-                .next()
-                .expect(""))
-    });
+    let content = std::fs::read_to_string(config_path).unwrap();
+    let config = serde_yaml::from_str(&content).expect("");
+    return Some(config)
 }
 
 fn tcr(config: fn() -> Option<Config>) -> Result<String, String>
@@ -99,17 +94,17 @@ mod file_config_tests
     fn it_returns_the_content_of_the_config_if_the_file_is_present_in_the_current_location()
     {
         create_dir_all("test-env").expect("TODO: panic message");
-        write("test-env/tcr.config", "npm test\n").expect("TODO: panic message");
+        let c = Config
+        {
+            test: String::from("npm test")
+        };
+        let yaml = serde_yaml::to_string(&c).unwrap();
+        write("test-env/tcr.yaml", yaml).expect("TODO: panic message");
 
-        let config = config(String::from("./test-env"));
+        let result = config(String::from("./test-env"));
 
-        assert!(config.is_some());
-        assert_eq!(
-            config.unwrap(),
-            Config
-            {
-                test: String::from("npm test")
-            });
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), c);
 
         remove_dir_all("test-env").expect("TODO: panic message");
     }
