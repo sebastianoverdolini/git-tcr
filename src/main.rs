@@ -68,7 +68,9 @@ mod tcr_tests
                 test: String::from("cargo test")
             })
         }
+
         let result = tcr(test_conf);
+
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),
@@ -82,6 +84,7 @@ mod tcr_tests
         {
             return None
         }
+
         assert!(tcr(no_conf).is_err());
     }
 }
@@ -99,6 +102,7 @@ mod file_config_tests
         write("test-env/tcr.config", "npm test\n").expect("TODO: panic message");
 
         let config = config(String::from("./test-env"));
+
         assert!(config.is_some());
         assert_eq!(
             config.unwrap(),
