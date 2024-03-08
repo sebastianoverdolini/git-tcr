@@ -16,7 +16,7 @@ fn main()
 
 fn tcr() -> &'static str
 {
-    return "cal"
+    return "cargo test"
 }
 
 #[cfg(test)]
@@ -25,8 +25,8 @@ mod tests
     use crate::tcr;
 
     #[test]
-    fn it_works()
+    fn it_runs_cargo_test()
     {
-        assert_eq!(tcr(), "cal");
+        assert_eq!(tcr(), "cargo test");
     }
 }
