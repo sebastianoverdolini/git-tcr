@@ -7,7 +7,7 @@ pub struct Config
     pub test: String
 }
 
-pub fn config(location: String) -> Option<Config>
+pub fn yaml_config(location: String) -> Option<Config>
 {
     let config_path = location.to_owned() + "/tcr.yaml";
     if !Path::new(&(config_path)).exists()
@@ -20,7 +20,7 @@ pub fn config(location: String) -> Option<Config>
 }
 
 #[cfg(test)]
-mod file_config_tests
+mod yaml_config_tests
 {
     use std::fs::{create_dir_all, remove_dir_all, write};
     use crate::config;
@@ -37,7 +37,7 @@ mod file_config_tests
         let yaml = serde_yaml::to_string(&c).unwrap();
         write("test-env/tcr.yaml", yaml).expect("TODO: panic message");
 
-        let result = config::config(String::from("./test-env"));
+        let result = config::yaml_config(String::from("./test-env"));
 
         assert!(result.is_some());
         assert_eq!(result.unwrap(), c);
@@ -48,6 +48,6 @@ mod file_config_tests
     #[test]
     fn it_returns_none_if_the_config_file_is_not_present_in_the_current_location()
     {
-        assert!(config::config(String::from("./test-env")).is_none());
+        assert!(config::yaml_config(String::from("./test-env")).is_none());
     }
 }
