@@ -5,7 +5,8 @@ pub fn tcr(config: fn() -> Option<Config>) -> Result<String, String>
     let result = config();
     if result.is_none()
     {
-        return Err(String::from(""))
+        return Err(String::from(
+            "No configuration found."))
     }
     let config = result.unwrap();
     return Ok(format!(
@@ -72,6 +73,10 @@ mod tcr_tests
             return None
         }
 
-        assert!(tcr::tcr(no_conf).is_err());
+        let result = tcr::tcr(no_conf);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err(),
+            "No configuration found.")
     }
 }
