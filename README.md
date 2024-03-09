@@ -12,7 +12,7 @@ To utilize TCR effectively, ensure you have the following prerequisites installe
 ## Installation
 ### Cargo
 ```
-cargo install --git https://github.com/sebastianoverdolini/tcr
+cargo install --git https://github.com/sebastianoverdolini/git-tcr
 ```
 
 ## Configuration
@@ -40,7 +40,7 @@ To integrate TCR into your development workflow, follow these simple steps:
 1. **Execute TCR**: Run the following command in your terminal:
 
     ```
-    tcr
+    git tcr
     ```
 
     This command will automatically trigger the TCR process, 
