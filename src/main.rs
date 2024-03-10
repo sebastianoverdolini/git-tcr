@@ -17,7 +17,8 @@ fn main()
                 .arg(cmd)
                 .output()
                 .expect("failed to execute process");
-            io::stdout().write_all(&output.stdout).unwrap()
+            io::stdout().write_all(&output.stdout).unwrap();
+            io::stdout().write_all(&output.stderr).unwrap();
         }
         Err(err) => println!("{}", err)
     }
