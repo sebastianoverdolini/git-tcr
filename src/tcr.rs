@@ -9,10 +9,14 @@ pub fn tcr(config: fn() -> Option<Config>) -> Result<String, String>
             "No configuration found."))
     }
     let config = result.unwrap();
-    return Ok(format!(
-        "{}({} && git add . && git commit -m WIP || git reset --hard)",
-        if !config.before.is_empty() { config.before.join(" && ") + " && " } else { "".to_string() },
-        config.test));
+    return Ok(
+        vec![
+            config.before,
+            vec![format!(
+                "({} && git add . && git commit -m WIP || git reset --hard)",
+                config.test)]]
+            .concat()
+            .join(" && "));
 }
 
 #[cfg(test)]
