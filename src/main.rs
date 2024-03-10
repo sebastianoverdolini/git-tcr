@@ -20,7 +20,7 @@ fn main()
             io::stdout().write_all(&output.stdout).unwrap();
             io::stdout().write_all(&output.stderr).unwrap();
         }
-        Err(err) => println!("{}", err)
+        Err(_) => println!("{}", "Configuration not found.")
     }
 
 }

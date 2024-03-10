@@ -1,12 +1,11 @@
 use crate::config::Config;
 
-pub fn tcr(config: fn() -> Option<Config>) -> Result<String, String>
+pub fn tcr(config: fn() -> Option<Config>) -> Result<String, ConfigurationNotFound>
 {
     let result = config();
     if result.is_none()
     {
-        return Err(String::from(
-            "No configuration found."))
+        return Err(ConfigurationNotFound);
     }
     let config = result.unwrap();
     return Ok(
@@ -19,11 +18,15 @@ pub fn tcr(config: fn() -> Option<Config>) -> Result<String, String>
             .join(" && "));
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct ConfigurationNotFound;
+
 #[cfg(test)]
 mod tcr_tests
 {
     use crate::tcr;
     use crate::config::Config;
+    use crate::tcr::ConfigurationNotFound;
 
 
     #[test]
@@ -81,6 +84,6 @@ mod tcr_tests
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err(),
-            "No configuration found.")
+            ConfigurationNotFound)
     }
 }
