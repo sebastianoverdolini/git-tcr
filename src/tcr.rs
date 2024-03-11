@@ -8,12 +8,11 @@ pub fn tcr(config: fn() -> Option<Config>) -> Result<String, ConfigurationNotFou
         return Err(ConfigurationNotFound);
     }
     let config = result.unwrap();
+    let plain_tcr = format!(
+        "({} && git add . && git commit -m WIP || git reset --hard)",
+        config.test);
     return Ok(
-        vec![
-            config.before,
-            vec![format!(
-                "({} && git add . && git commit -m WIP || git reset --hard)",
-                config.test)]]
+        vec![config.before, vec![plain_tcr]]
             .concat()
             .join(" && "));
 }
