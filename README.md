@@ -1,7 +1,11 @@
 # TCR (Test && Commit || Revert)
 
 ## Introduction
-**TCR (Test && Commit || Revert)** is a disciplined approach to software development aimed at ensuring code quality and integrity. It enforces the practice of running tests before committing changes to the codebase. If the tests pass, the changes are committed; otherwise, the changes are reverted to maintain a working state of the code.
+**TCR (Test && Commit || Revert)** is a disciplined approach to software 
+development aimed at ensuring code quality and integrity. 
+It enforces the practice of running tests before committing 
+changes to the codebase. If the tests pass, the changes are committed; 
+otherwise, the changes are reverted to maintain a working state of the code.
 
 ## Requirements
 To utilize TCR effectively, ensure you have the following prerequisites installed:
@@ -48,6 +52,9 @@ To integrate TCR into your development workflow, follow these simple steps:
     or reverting changes if the tests fail.
 
 ## Conclusion
-By adopting TCR in your software development workflow, you can streamline your development process, minimize errors, and deliver high-quality code consistently. Embrace the TCR philosophy to build robust and reliable software with confidence.
+By adopting TCR in your software development workflow, you can streamline your 
+development process, minimize errors, and deliver high-quality code 
+consistently. Embrace the TCR philosophy to build robust 
+and reliable software with confidence.
 
 
