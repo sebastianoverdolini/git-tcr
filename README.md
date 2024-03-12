@@ -22,14 +22,14 @@ cargo install --git https://github.com/sebastianoverdolini/git-tcr
 ### Binaries
 #### macOS (x86_64)
 ```
-curl -L https://github.com/sebastianoverdolini/git-tcr/releases/download/v0.1.0/git-tcr-x86_64-apple-darwin > git-tcr && \
+curl -L https://github.com/sebastianoverdolini/git-tcr/releases/download/latest/git-tcr-x86_64-apple-darwin > git-tcr && \
     chmod +x git-tcr && \
     sudo mv git-tcr /usr/local/bin/git-tcr
 ```
 
 #### macOS (aarch64)
 ```
-curl -L https://github.com/sebastianoverdolini/git-tcr/releases/download/v0.1.0/git-tcr-aarch64-apple-darwin > git-tcr && \
+curl -L https://github.com/sebastianoverdolini/git-tcr/releases/download/latest/git-tcr-aarch64-apple-darwin > git-tcr && \
     chmod +x git-tcr && \
     sudo mv git-tcr /usr/local/bin/git-tcr
 ```
