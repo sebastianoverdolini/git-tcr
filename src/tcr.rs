@@ -8,10 +8,16 @@ pub fn tcr(config: fn() -> Option<Config>, args: Vec<String>) -> Result<String, 
         return Err(ConfigurationNotFound);
     }
     let config = result.unwrap();
-    let plain_tcr = format!(
-        "({} && git add . && git commit -m WIP{} || git reset --hard)",
+    let mut cmds = vec![
         config.test,
-        if args.contains(&"--push".to_string()) { " && git push" } else { "" });
+        "git add .".to_string(),
+        "git commit -m WIP".to_string()];
+    if args.contains(&"--push".to_string()) { cmds.push("git push".to_string()) }
+    let tc = format!(
+        "{}",
+        cmds.join(" && "));
+    let plain_tcr = format!(
+        "({} || {})", tc, "git reset --hard");
     return Ok(
         vec![config.before, vec![plain_tcr]]
             .concat()
