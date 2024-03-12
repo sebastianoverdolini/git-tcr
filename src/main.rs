@@ -1,7 +1,5 @@
 extern crate core;
 
-use std::io;
-use std::io::Write;
 use std::process::Command;
 
 mod tcr;
@@ -12,13 +10,13 @@ fn main()
     let result = tcr::tcr(|| config::yaml_config(String::from(".")));
     match result {
         Ok(cmd) => {
-            let output = Command::new("sh")
+            let mut child = Command::new("sh")
                 .arg("-c")
                 .arg(cmd)
-                .output()
+                .spawn()
                 .expect("failed to execute process");
-            io::stdout().write_all(&output.stdout).unwrap();
-            io::stdout().write_all(&output.stderr).unwrap();
+            child.wait().expect("TODO: panic message");
+            child.kill().expect("TODO: panic message");
         }
         Err(_) => println!("{}", "Configuration not found.")
     }
