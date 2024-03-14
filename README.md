@@ -59,18 +59,12 @@ To integrate TCR into your development workflow, follow these simple steps:
 1. **Execute TCR**: Run the following command in your terminal:
 
     ```
-    git tcr [--push]
+    git tcr
     ```
 
     This command will automatically trigger the TCR process, 
     running tests and committing changes if they pass, 
     or reverting changes if the tests fail.
-    
-    Including the `--push` option will automatically push the committed changes
-    to the remote origin. In a pair/mob programming session, 
-    this option proves especially beneficial. 
-    Simply check out into a separate branch and swiftly 
-    alternate between driver and navigator roles!
 
 ## Conclusion
 By adopting TCR in your software development workflow, you can streamline your 

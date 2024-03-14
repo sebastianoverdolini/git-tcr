@@ -1,6 +1,6 @@
 use crate::config::Config;
 
-pub fn tcr(config: fn() -> Option<Config>, args: Vec<String>) -> Result<String, ConfigurationNotFound>
+pub fn tcr(config: fn() -> Option<Config>) -> Result<String, ConfigurationNotFound>
 {
     let result = config();
     if result.is_none()
@@ -8,22 +8,13 @@ pub fn tcr(config: fn() -> Option<Config>, args: Vec<String>) -> Result<String, 
         return Err(ConfigurationNotFound);
     }
     let config = result.unwrap();
-    let push_option_active =
-        |args: Vec<String>| args.contains(&"--push".to_string());
-    return Ok(vec!
-    [
-        config.before,
-        vec!
-        [
-            format!(
-                "({} || {})",
-                [
-                    vec![format!("{} && git add . && git commit -m WIP", config.test)],
-                    if push_option_active(args) { vec!["git push".to_string()] } else { vec![] }
-                ].concat().join(" && "),
-                "git reset --hard")
-        ]
-    ].concat().join(" && "));
+    let plain_tcr = format!(
+        "({} && git add . && git commit -m WIP || git reset --hard)",
+        config.test);
+    return Ok(
+        vec![config.before, vec![plain_tcr]]
+            .concat()
+            .join(" && "));
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -52,7 +43,7 @@ mod tcr_tests
             })
         }
 
-        let result = tcr::tcr(test_conf, no_args());
+        let result = tcr::tcr(test_conf);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -72,32 +63,12 @@ mod tcr_tests
             })
         }
 
-        let result = tcr::tcr(test_conf, no_args());
+        let result = tcr::tcr(test_conf);
 
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),
             "(pnpm test && git add . && git commit -m WIP || git reset --hard)");
-    }
-
-    #[test]
-    fn it_runs_tcr_appending_push_if_arg_is_present()
-    {
-        fn test_conf() -> Option<Config>
-        {
-            return Some(Config
-            {
-                test: String::from("pnpm test"),
-                before: vec![]
-            })
-        }
-
-        let result = tcr::tcr(test_conf, arg("--push"));
-
-        assert!(result.is_ok());
-        assert_eq!(
-            result.unwrap(),
-            "(pnpm test && git add . && git commit -m WIP && git push || git reset --hard)");
     }
 
     #[test]
@@ -108,26 +79,10 @@ mod tcr_tests
             return None
         }
 
-        let result = tcr::tcr(no_conf, no_args());
+        let result = tcr::tcr(no_conf);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err(),
             ConfigurationNotFound)
-    }
-
-    fn no_args() -> Vec<String>
-    {
-        return vec!["target/debug/git-tcr", "tcr"]
-            .iter()
-            .map(|s| s.to_string())
-            .collect();
-    }
-
-    fn arg(arg: &str) -> Vec<String>
-    {
-        return vec!["target/debug/git-tcr", "tcr", arg]
-            .iter()
-            .map(|s| s.to_string())
-            .collect();
     }
 }

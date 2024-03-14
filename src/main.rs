@@ -1,6 +1,5 @@
 extern crate core;
 
-use std::env::args;
 use std::process::Command;
 
 mod tcr;
@@ -8,9 +7,7 @@ mod config;
 
 fn main()
 {
-    let result = tcr::tcr(
-        || config::yaml_config(String::from(".")),
-        args().collect());
+    let result = tcr::tcr(|| config::yaml_config(String::from(".")));
     match result {
         Ok(cmd) => {
             let mut child = Command::new("sh")
