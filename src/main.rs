@@ -21,7 +21,7 @@ fn main()
                 .wait()
                 .expect("TODO: panic message");
         }
-        Err(error) => println!("{}", error)
+        Err(error) => println!("Error: {}", error)
     }
 
 }
