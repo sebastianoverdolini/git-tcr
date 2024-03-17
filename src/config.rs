@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::PathBuf;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config
@@ -8,10 +8,10 @@ pub struct Config
     pub before: Vec<String>
 }
 
-pub fn yaml_config(location: String) -> Option<Config>
+pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config>
 {
-    let config_path = location.to_owned() + "/tcr.yaml";
-    if !Path::new(&(config_path)).exists()
+    let config_path = location.into().join("tcr.yaml");
+    if !config_path.exists()
     {
         return None;
     }
@@ -24,6 +24,7 @@ pub fn yaml_config(location: String) -> Option<Config>
 mod yaml_config_tests
 {
     use std::fs::{create_dir_all, remove_dir_all, write};
+    use std::path::Path;
     use crate::config;
     use crate::config::Config;
 
@@ -42,7 +43,7 @@ mod yaml_config_tests
         let yaml = serde_yaml::to_string(&c).unwrap();
         write("test-env/tcr.yaml", yaml).expect("TODO: panic message");
 
-        let result = config::yaml_config(String::from("./test-env"));
+        let result = config::yaml_config(Path::new("./test-env"));
 
         assert!(result.is_some());
         assert_eq!(result.unwrap(), c);
