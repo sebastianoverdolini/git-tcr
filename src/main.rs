@@ -10,12 +10,13 @@ fn main()
     let result = tcr::tcr(|| config::yaml_config(String::from(".")));
     match result {
         Ok(cmd) => {
-            let mut child = Command::new("sh")
+            Command::new("sh")
                 .arg("-c")
                 .arg(cmd)
                 .spawn()
-                .expect("failed to execute process");
-            child.wait().expect("TODO: panic message");
+                .expect("failed to execute process")
+                .wait()
+                .expect("TODO: panic message");
         }
         Err(_) => println!("{}", "Configuration not found.")
     }
