@@ -1,6 +1,6 @@
 use crate::config::Config;
 
-pub fn tcr(config: fn() -> Option<Config>) -> Result<String, ConfigurationNotFound>
+pub fn tcr(config: fn() -> Option<Config>) -> Result<TcrCommand, ConfigurationNotFound>
 {
     let result = config();
     if result.is_none()
@@ -16,6 +16,8 @@ pub fn tcr(config: fn() -> Option<Config>) -> Result<String, ConfigurationNotFou
             .concat()
             .join(" && "));
 }
+
+type TcrCommand = String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConfigurationNotFound;
