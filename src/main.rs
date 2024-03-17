@@ -1,13 +1,14 @@
 extern crate core;
 
 use std::process::Command;
+use crate::config::yaml_config;
 
 mod tcr;
 mod config;
 
 fn main()
 {
-    let result = tcr::tcr(|| config::yaml_config(String::from(".")));
+    let result = tcr::tcr(|| yaml_config(String::from(".")));
     match result {
         Ok(cmd) => {
             Command::new("sh")
