@@ -16,7 +16,6 @@ fn main()
                 .spawn()
                 .expect("failed to execute process");
             child.wait().expect("TODO: panic message");
-            child.kill().expect("TODO: panic message");
         }
         Err(_) => println!("{}", "Configuration not found.")
     }
