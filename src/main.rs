@@ -21,7 +21,7 @@ fn main()
                 .wait()
                 .expect("TODO: panic message");
         }
-        Err(_) => println!("{}", "Configuration not found.")
+        Err(error) => println!("{}", error)
     }
 
 }

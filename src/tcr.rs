@@ -1,3 +1,4 @@
+use std::fmt;
 use crate::config::Config;
 
 pub fn tcr(config: fn() -> Option<Config>) -> Result<TcrCommand, ConfigurationNotFound>
@@ -21,6 +22,12 @@ type TcrCommand = String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConfigurationNotFound;
+
+impl fmt::Display for ConfigurationNotFound {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Configuration not found.")
+    }
+}
 
 #[cfg(test)]
 mod tcr_tests
