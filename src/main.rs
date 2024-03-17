@@ -1,6 +1,6 @@
 extern crate core;
 
-use std::path::Path;
+use std::env::current_dir;
 use std::process::Command;
 use crate::config::yaml_config;
 use crate::tcr::tcr;
@@ -10,7 +10,7 @@ mod config;
 
 fn main()
 {
-    let result = tcr(|| yaml_config(Path::new(".")));
+    let result = tcr(|| yaml_config(current_dir().unwrap()));
     match result {
         Ok(cmd) => {
             Command::new("sh")
