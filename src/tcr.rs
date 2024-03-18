@@ -1,7 +1,7 @@
 use std::fmt;
 use crate::config::Config;
 
-pub fn tcr(config: fn() -> Option<Config>) -> Result<TcrCommand, ConfigurationNotFound>
+pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, ConfigurationNotFound>
 {
     let result = config();
     if result.is_none()
@@ -52,7 +52,7 @@ mod tcr_tests
             })
         }
 
-        let result = tcr::tcr(test_conf);
+        let result = tcr::tcr_cmd(test_conf);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -72,7 +72,7 @@ mod tcr_tests
             })
         }
 
-        let result = tcr::tcr(test_conf);
+        let result = tcr::tcr_cmd(test_conf);
 
         assert!(result.is_ok());
         assert_eq!(
@@ -88,7 +88,7 @@ mod tcr_tests
             return None
         }
 
-        let result = tcr::tcr(no_conf);
+        let result = tcr::tcr_cmd(no_conf);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err(),
