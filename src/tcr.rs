@@ -18,7 +18,7 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
             .join(" && "));
 }
 
-type TcrCommand = String;
+pub type TcrCommand = String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConfigurationNotFound;

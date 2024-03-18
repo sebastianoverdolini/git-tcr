@@ -3,7 +3,7 @@ extern crate core;
 use std::env::current_dir;
 use std::process::Command;
 use crate::config::yaml_config;
-use crate::tcr::tcr_cmd;
+use crate::tcr::{tcr_cmd, TcrCommand};
 
 mod tcr;
 mod config;
@@ -17,7 +17,7 @@ fn main()
     }
 }
 
-fn sh(cmd: String)
+fn sh(cmd: TcrCommand)
 {
     Command::new("sh")
         .arg("-c")
