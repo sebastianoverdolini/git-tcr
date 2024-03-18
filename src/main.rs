@@ -12,15 +12,18 @@ fn main()
 {
     let result = tcr_cmd(|| yaml_config(current_dir().unwrap()));
     match result {
-        Ok(cmd) => {
-            Command::new("sh")
-                .arg("-c")
-                .arg(cmd)
-                .spawn()
-                .expect("failed to execute process")
-                .wait()
-                .expect("TODO: panic message");
-        }
+        Ok(cmd) => sh(cmd),
         Err(error) => println!("Error: {}", error)
     }
+}
+
+fn sh(cmd: String)
+{
+    Command::new("sh")
+        .arg("-c")
+        .arg(cmd)
+        .spawn()
+        .expect("failed to execute process")
+        .wait()
+        .expect("TODO: panic message");
 }
