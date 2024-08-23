@@ -12,10 +12,10 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
     let plain_tcr = format!(
         "({} && git add . && git commit -m WIP || (git clean -fdq . && git restore .))",
         config.test);
-    return Ok(
+    Ok(
         vec![config.before, vec![plain_tcr]]
             .concat()
-            .join(" && "));
+            .join(" && "))
 }
 
 pub type TcrCommand = String;
@@ -42,7 +42,7 @@ mod tcr_tests
     {
         fn test_conf() -> Option<Config>
         {
-            return Some(Config
+            Some(Config
             {
                 test: String::from("pnpm test"),
                 before: vec![
@@ -65,7 +65,7 @@ mod tcr_tests
     {
         fn test_conf() -> Option<Config>
         {
-            return Some(Config
+            Some(Config
             {
                 test: String::from("pnpm test"),
                 before: vec![]
@@ -85,7 +85,7 @@ mod tcr_tests
     {
         fn no_conf() -> Option<Config>
         {
-            return None
+            None
         }
 
         let result = tcr::tcr_cmd(no_conf);
