@@ -10,7 +10,7 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
     }
     let config = result.unwrap();
     let plain_tcr = format!(
-        "git add -A && ({} && git commit -m WIP || git reset --hard)",
+        "git add . && ({} && git commit -m WIP || git reset --hard)",
         config.test);
     return Ok(
         vec![config.before, vec![plain_tcr]]
@@ -57,7 +57,7 @@ mod tcr_tests
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),
-            "pnpm tc && prettier --write . && git add -A && (pnpm test && git commit -m WIP || git reset --hard)");
+            "pnpm tc && prettier --write . && git add . && (pnpm test && git commit -m WIP || git reset --hard)");
     }
 
     #[test]
@@ -77,7 +77,7 @@ mod tcr_tests
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),
-            "git add -A && (pnpm test && git commit -m WIP || git reset --hard)");
+            "git add . && (pnpm test && git commit -m WIP || git reset --hard)");
     }
 
     #[test]
