@@ -5,7 +5,9 @@ use std::path::PathBuf;
 pub struct Config
 {
     pub test: String,
-    pub before: Vec<String>
+    pub before: Vec<String>,
+    #[serde(default)]
+    pub no_verify: bool
 }
 
 pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config>
@@ -32,23 +34,51 @@ mod yaml_config_tests
     fn it_returns_the_content_of_the_config_if_the_file_is_present_in_the_current_location()
     {
         create_dir_all("test-env").expect("TODO: panic message");
-        let c = Config
+        let yaml_string = r#"
+        test: npm test
+        before:
+            - pnpm tc
+            - prettier --write .
+        no_verify: true
+        "#;
+        write("test-env/tcr.yaml", yaml_string).expect("TODO: panic message");
+
+        let result = config::yaml_config(Path::new("./test-env"));
+
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), Config
         {
             test: String::from("npm test"),
             before: vec![
                 String::from("pnpm tc"),
                 String::from("prettier --write .")
-            ]
-        };
-        let yaml = serde_yaml::to_string(&c).unwrap();
-        write("test-env/tcr.yaml", yaml).expect("TODO: panic message");
-
-        let result = config::yaml_config(Path::new("./test-env"));
-
-        assert!(result.is_some());
-        assert_eq!(result.unwrap(), c);
+            ],
+            no_verify: true
+        });
 
         remove_dir_all("test-env").expect("TODO: panic message");
+    }
+
+    #[test]
+    fn no_verify_option_is_false_by_default()
+    {
+        create_dir_all("test-env-2").expect("TODO: panic message");
+        write("test-env-2/tcr.yaml", r#"
+        test: npm test
+        before: []
+        "#).expect("TODO: panic message");
+
+        let result = config::yaml_config(Path::new("./test-env-2"));
+
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), Config
+        {
+            test: String::from("npm test"),
+            before: vec![],
+            no_verify: false
+        });
+
+        remove_dir_all("test-env-2").expect("TODO: panic message");
     }
 
     #[test]
