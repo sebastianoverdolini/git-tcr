@@ -9,9 +9,17 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
         return Err(ConfigurationNotFound);
     }
     let config = result.unwrap();
+    let commit = vec![
+        "git commit",
+        if config.no_verify { "--no-verify" } else { "" },
+        "-m WIP"]
+        .into_iter()
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<&str>>()
+        .join(" ");
     let plain_tcr = format!(
-        "({} && git add . && git commit -m WIP || (git clean -fdq . && git reset --hard))",
-        config.test);
+        "({} && git add . && {} || (git clean -fdq . && git reset --hard))",
+        config.test, commit);
     Ok(
         vec![config.before, vec![plain_tcr]]
             .concat()
@@ -48,7 +56,8 @@ mod tcr_tests
                 before: vec![
                     String::from("pnpm tc"),
                     String::from("prettier --write .")
-                ]
+                ],
+                no_verify: false
             })
         }
 
@@ -68,7 +77,8 @@ mod tcr_tests
             Some(Config
             {
                 test: String::from("pnpm test"),
-                before: vec![]
+                before: vec![],
+                no_verify: false
             })
         }
 
@@ -79,6 +89,28 @@ mod tcr_tests
             result.unwrap(),
             "(pnpm test && git add . && git commit -m WIP || (git clean -fdq . && git reset --hard))");
     }
+
+    #[test]
+    fn it_runs_tcr_with_no_verify()
+    {
+        fn test_conf() -> Option<Config>
+        {
+            Some(Config
+            {
+                test: String::from("npm test"),
+                before: vec![],
+                no_verify: true
+            })
+        }
+
+        let result = tcr::tcr_cmd(test_conf);
+
+        assert!(result.is_ok());
+        assert_eq!(
+            result.unwrap(),
+            "(npm test && git add . && git commit --no-verify -m WIP || (git clean -fdq . && git reset --hard))");
+    }
+
 
     #[test]
     fn it_returns_error_if_configuration_is_not_present()
