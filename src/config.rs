@@ -5,7 +5,6 @@ use std::path::PathBuf;
 pub struct Config
 {
     pub test: String,
-    pub before: Vec<String>,
     #[serde(default)]
     pub no_verify: bool
 }
@@ -39,9 +38,6 @@ mod yaml_config_tests {
 
         let yaml_string = r#"
         test: npm test
-        before:
-            - pnpm tc
-            - prettier --write .
         no_verify: true
         "#;
         write(&config_path, yaml_string).expect("Failed to write test config");
@@ -51,10 +47,6 @@ mod yaml_config_tests {
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
             test: String::from("npm test"),
-            before: vec![
-                String::from("pnpm tc"),
-                String::from("prettier --write .")
-            ],
             no_verify: true
         });
 
@@ -79,7 +71,6 @@ mod yaml_config_tests {
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
             test: String::from("npm test"),
-            before: vec![],
             no_verify: false
         });
 

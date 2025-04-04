@@ -15,10 +15,7 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
         test_command(config.test),
         commit_command(config.no_verify),
         revert_command());
-    Ok(
-        vec![config.before, vec![tcr_command]]
-            .concat()
-            .join(" && "))
+    Ok(tcr_command)
 }
 
 fn test_command(test: String) -> String {
@@ -54,7 +51,6 @@ mod tcr_tests
     use crate::config::Config;
     use crate::tcr::ConfigurationNotFound;
 
-
     #[test]
     fn it_runs_tcr()
     {
@@ -63,31 +59,6 @@ mod tcr_tests
             Some(Config
             {
                 test: String::from("pnpm test"),
-                before: vec![
-                    String::from("pnpm tc"),
-                    String::from("prettier --write .")
-                ],
-                no_verify: false
-            })
-        }
-
-        let result = tcr::tcr_cmd(test_conf);
-
-        assert!(result.is_ok());
-        assert_eq!(
-            result.unwrap(),
-            "pnpm tc && prettier --write . && (pnpm test && git add . && git commit -m WIP || (git clean -fdq . && git reset --hard))");
-    }
-
-    #[test]
-    fn it_runs_tcr_with_empty_before()
-    {
-        fn test_conf() -> Option<Config>
-        {
-            Some(Config
-            {
-                test: String::from("pnpm test"),
-                before: vec![],
                 no_verify: false
             })
         }
@@ -108,7 +79,6 @@ mod tcr_tests
             Some(Config
             {
                 test: String::from("npm test"),
-                before: vec![],
                 no_verify: true
             })
         }
