@@ -6,7 +6,7 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
     let config = config().ok_or(ConfigurationNotFound)?;
 
     let test = test_command(config.test);
-    let commit = commit_command(config.no_verify);
+    let commit = commit_command(config.no_verify.unwrap_or(false));
     let revert = revert_command();
 
     Ok(format!("({test} && {commit} || {revert})"))
@@ -51,7 +51,7 @@ mod tcr_tests
         let result = tcr::tcr_cmd(|| Some(Config
         {
             test: String::from("pnpm test"),
-            no_verify: false
+            no_verify: None
         }));
 
         assert!(result.is_ok());
@@ -66,7 +66,7 @@ mod tcr_tests
         let result = tcr::tcr_cmd(|| Some(Config
         {
             test: String::from("npm test"),
-            no_verify: true
+            no_verify: Some(true)
         }));
 
         assert!(result.is_ok());

@@ -6,7 +6,7 @@ pub struct Config
 {
     pub test: String,
     #[serde(default)]
-    pub no_verify: bool
+    pub no_verify: Option<bool>
 }
 
 pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config>
@@ -47,14 +47,14 @@ mod yaml_config_tests {
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
             test: String::from("npm test"),
-            no_verify: true
+            no_verify: Some(true)
         });
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
     }
 
     #[test]
-    fn no_verify_option_is_false_by_default() {
+    fn no_verify_option_is_optional() {
         let test_dir = "test-env-no-verify";
         let config_path = format!("{}/tcr.yaml", test_dir);
 
@@ -71,7 +71,7 @@ mod yaml_config_tests {
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
             test: String::from("npm test"),
-            no_verify: false
+            no_verify: None
         });
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
