@@ -46,7 +46,7 @@ mod tcr_tests
     use crate::tcr::ConfigurationNotFound;
 
     #[test]
-    fn it_runs_tcr()
+    fn it_returns_tcr_command()
     {
         let result = tcr::tcr_cmd(|| Some(Config
         {
@@ -61,7 +61,7 @@ mod tcr_tests
     }
 
     #[test]
-    fn it_runs_tcr_with_no_verify()
+    fn it_returns_tcr_command_with_no_verify_when_option_is_true()
     {
         let result = tcr::tcr_cmd(|| Some(Config
         {
@@ -73,6 +73,21 @@ mod tcr_tests
         assert_eq!(
             result.unwrap(),
             "(npm test && git add . && git commit -m WIP --no-verify || (git clean -fdq . && git reset --hard))");
+    }
+
+    #[test]
+    fn it_returns_tcr_command_with_verify_when_option_is_false()
+    {
+        let result = tcr::tcr_cmd(|| Some(Config
+        {
+            test: String::from("npm test"),
+            no_verify: Some(false)
+        }));
+
+        assert!(result.is_ok());
+        assert_eq!(
+            result.unwrap(),
+            "(npm test && git add . && git commit -m WIP || (git clean -fdq . && git reset --hard))");
     }
 
 
