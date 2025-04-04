@@ -12,13 +12,9 @@ pub struct Config
 pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config>
 {
     let config_path = location.into().join("tcr.yaml");
-    if !config_path.exists()
-    {
-        return None;
-    }
-    let content = std::fs::read_to_string(config_path).unwrap();
-    let config = serde_yaml::from_str(&content).expect("");
-    return Some(config)
+    let content = std::fs::read_to_string(&config_path).ok()?;
+    let config = serde_yaml::from_str(&content).ok()?;
+    Some(config)
 }
 
 #[cfg(test)]
