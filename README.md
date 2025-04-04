@@ -20,21 +20,6 @@ You can read his original article [here](https://medium.com/@kentbeck_7670/test-
 cargo install --git https://github.com/sebastianoverdolini/git-tcr
 ```
 
-### Binaries
-#### macOS (x86_64)
-```
-curl -L https://github.com/sebastianoverdolini/git-tcr/releases/latest/download/git-tcr-x86_64-apple-darwin > git-tcr && \
-    chmod +x git-tcr && \
-    sudo mv git-tcr /usr/local/bin/git-tcr
-```
-
-#### macOS (aarch64)
-```
-curl -L https://github.com/sebastianoverdolini/git-tcr/releases/latest/download/git-tcr-aarch64-apple-darwin > git-tcr && \
-    chmod +x git-tcr && \
-    sudo mv git-tcr /usr/local/bin/git-tcr
-```
-
 ## Configuration
 To configure TCR for your project, follow these steps:
 
