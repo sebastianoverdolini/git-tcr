@@ -48,16 +48,11 @@ mod tcr_tests
     #[test]
     fn it_runs_tcr()
     {
-        fn test_conf() -> Option<Config>
+        let result = tcr::tcr_cmd(|| Some(Config
         {
-            Some(Config
-            {
-                test: String::from("pnpm test"),
-                no_verify: false
-            })
-        }
-
-        let result = tcr::tcr_cmd(test_conf);
+            test: String::from("pnpm test"),
+            no_verify: false
+        }));
 
         assert!(result.is_ok());
         assert_eq!(
@@ -68,16 +63,11 @@ mod tcr_tests
     #[test]
     fn it_runs_tcr_with_no_verify()
     {
-        fn test_conf() -> Option<Config>
+        let result = tcr::tcr_cmd(|| Some(Config
         {
-            Some(Config
-            {
-                test: String::from("npm test"),
-                no_verify: true
-            })
-        }
-
-        let result = tcr::tcr_cmd(test_conf);
+            test: String::from("npm test"),
+            no_verify: true
+        }));
 
         assert!(result.is_ok());
         assert_eq!(
@@ -89,12 +79,7 @@ mod tcr_tests
     #[test]
     fn it_returns_error_if_configuration_is_not_present()
     {
-        fn no_conf() -> Option<Config>
-        {
-            None
-        }
-
-        let result = tcr::tcr_cmd(no_conf);
+        let result = tcr::tcr_cmd(|| None);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err(),
