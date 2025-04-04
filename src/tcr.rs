@@ -9,19 +9,18 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
         return Err(ConfigurationNotFound);
     }
     let config = result.unwrap();
-    let commit = vec![
-        "git commit",
-        if config.no_verify { "--no-verify" } else { "" },
-        "-m WIP"]
+    let test = config.test;
+    let commit = ["git add . && git commit", "-m WIP"]
         .into_iter()
-        .filter(|s| !s.is_empty())
-        .collect::<Vec<&str>>()
+        .chain(config.no_verify.then_some("--no-verify"))
+        .collect::<Vec<_>>()
         .join(" ");
-    let plain_tcr = format!(
-        "({} && git add . && {} || (git clean -fdq . && git reset --hard))",
-        config.test, commit);
+    let revert = "(git clean -fdq . && git reset --hard)";
+
+    let cmd = format!(
+        "({} && {} || {})", test, commit, revert);
     Ok(
-        vec![config.before, vec![plain_tcr]]
+        vec![config.before, vec![cmd]]
             .concat()
             .join(" && "))
 }
@@ -108,7 +107,7 @@ mod tcr_tests
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),
-            "(npm test && git add . && git commit --no-verify -m WIP || (git clean -fdq . && git reset --hard))");
+            "(npm test && git add . && git commit -m WIP --no-verify || (git clean -fdq . && git reset --hard))");
     }
 
 
