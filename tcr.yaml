@@ -1,2 +1,1 @@
 test: "cargo test"
-before: []
