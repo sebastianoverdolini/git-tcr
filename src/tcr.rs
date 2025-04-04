@@ -3,19 +3,14 @@ use crate::config::Config;
 
 pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, ConfigurationNotFound>
 {
-    let result = config();
-    if result.is_none()
-    {
-        return Err(ConfigurationNotFound);
-    }
-    let config = result.unwrap();
+    let config = config().ok_or(ConfigurationNotFound)?;
 
-    let tcr_command = format!(
+    Ok(format!(
         "({} && {} || {})",
         test_command(config.test),
         commit_command(config.no_verify),
-        revert_command());
-    Ok(tcr_command)
+        revert_command()
+    ))
 }
 
 fn test_command(test: String) -> String {
