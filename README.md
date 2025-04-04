@@ -1,8 +1,8 @@
 # TCR (Test && Commit || Revert)
 
 ## Introduction
-**TCR (Test && Commit || Revert)** is a disciplined approach to software 
-development that encourages taking small, incremental steps. 
+**TCR (Test && Commit || Revert)** is a variation of test-driven development
+that encourages taking small, incremental steps. 
 The rules are straightforward: if tests pass, the changes are committed; 
 if they fail, the changes are reverted. 
 This method promotes a cycle of continuous testing and feedback, 
@@ -28,17 +28,8 @@ To configure TCR for your project, follow these steps:
 
     ```yaml
     test: "<your test command>"
-    before: # A list of commands to execute before the test command
-        - "<first command>"
-        - "<second command>"
-        - ...
-   no_verify: <true|false> # Optional: Set to 'true' to skip verification steps. Default is false.
+    no_verify: <true|false> # Optional: Set to 'true' to skip verification steps. Default is false.
     ```
-
-    If you prefer not to define any commands to run before testing, 
-    leave the `before` section as an empty array `[]`. 
-    Commands specified here will be executed before running 
-    the test command but won't trigger a revert action if they fail.
 
 ## Usage
 ```
