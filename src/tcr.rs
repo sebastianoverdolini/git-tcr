@@ -5,12 +5,11 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
 {
     let config = config().ok_or(ConfigurationNotFound)?;
 
-    Ok(format!(
-        "({} && {} || {})",
-        test_command(config.test),
-        commit_command(config.no_verify),
-        revert_command()
-    ))
+    let test = test_command(config.test);
+    let commit = commit_command(config.no_verify);
+    let revert = revert_command();
+
+    Ok(format!("({test} && {commit} || {revert})"))
 }
 
 fn test_command(test: String) -> String {
