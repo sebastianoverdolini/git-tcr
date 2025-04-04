@@ -9,20 +9,31 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
         return Err(ConfigurationNotFound);
     }
     let config = result.unwrap();
-    let test = config.test;
-    let commit = ["git add . && git commit", "-m WIP"]
-        .into_iter()
-        .chain(config.no_verify.then_some("--no-verify"))
-        .collect::<Vec<_>>()
-        .join(" ");
-    let revert = "(git clean -fdq . && git reset --hard)";
 
-    let cmd = format!(
-        "({} && {} || {})", test, commit, revert);
+    let tcr_command = format!(
+        "({} && {} || {})",
+        test_command(config.test),
+        commit_command(config.no_verify),
+        revert_command());
     Ok(
-        vec![config.before, vec![cmd]]
+        vec![config.before, vec![tcr_command]]
             .concat()
             .join(" && "))
+}
+
+fn test_command(test: String) -> String {
+    test
+}
+
+fn commit_command(no_verify: bool) -> String {
+    std::iter::once("git add . && git commit -m WIP")
+        .chain(no_verify.then_some("--no-verify"))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn revert_command() -> &'static str {
+    "(git clean -fdq . && git reset --hard)"
 }
 
 pub type TcrCommand = String;
