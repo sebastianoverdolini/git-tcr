@@ -2,7 +2,7 @@
 
 ## Introduction
 **TCR (Test && Commit || Revert)** is a variation of test-driven development
-that encourages taking small, incremental steps. 
+that forces taking small, incremental steps. 
 The rules are straightforward: if tests pass, the changes are committed; 
 if they fail, the changes are reverted. 
 This method promotes a cycle of continuous testing and feedback, 
