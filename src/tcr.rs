@@ -101,3 +101,53 @@ mod tcr_tests
             ConfigurationNotFound)
     }
 }
+
+#[cfg(test)]
+mod test_command_test
+{
+    use crate::tcr::test_command;
+
+    #[test]
+    fn cmd()
+    {
+        let cmd = test_command("pnpm test".to_string());
+
+        assert_eq!(cmd, "pnpm test");
+    }
+}
+
+#[cfg(test)]
+mod commit_command_test
+{
+    use crate::tcr::commit_command;
+
+    #[test]
+    fn verifying()
+    {
+        let cmd = commit_command(false);
+
+        assert_eq!(cmd, "git commit -m WIP");
+    }
+
+    #[test]
+    fn no_verify()
+    {
+        let cmd = commit_command(true);
+
+        assert_eq!(cmd, "git commit -m WIP --no-verify");
+    }
+}
+
+#[cfg(test)]
+mod revert_command_test
+{
+    use crate::tcr::revert_command;
+
+    #[test]
+    fn cmd()
+    {
+        let cmd = revert_command();
+
+        assert_eq!(cmd, "(git clean -fdq . && git reset --hard)");
+    }
+}
