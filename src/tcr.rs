@@ -3,31 +3,51 @@ use crate::config::Config;
 
 pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, ConfigurationNotFound>
 {
+    // TODO To simplify. Avoid cloning. Pass directly values?
     let config = config().ok_or(ConfigurationNotFound)?;
 
-    let test = test_command(config.test);
-    let commit = commit_command(config.no_verify.unwrap_or(false));
-    let revert = revert_command();
-
-    Ok(format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})"))
+    Ok(tcr_command(
+        || test_command(config.test.clone()),
+        || commit_command(config.clone().no_verify.unwrap_or(false)),
+        || revert_command()))
 }
 
-fn test_command(test: String) -> String {
+fn tcr_command(
+    test_command: impl Fn() -> TestCommand,
+    commit_command: impl Fn() -> CommitCommand,
+    revert_command: impl Fn() -> RevertCommand
+) -> TcrCommand
+{
+    // TODO To test independently
+    let test = test_command();
+    let commit = commit_command();
+    let revert = revert_command();
+
+    format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})")
+}
+
+fn test_command(test: String) -> TestCommand {
     test
 }
 
-fn commit_command(no_verify: bool) -> String {
+fn commit_command(no_verify: bool) -> CommitCommand {
     std::iter::once("git commit -m WIP")
         .chain(no_verify.then_some("--no-verify"))
         .collect::<Vec<_>>()
         .join(" ")
 }
 
-fn revert_command() -> &'static str {
-    "(git clean -fdq . && git reset --hard)"
+fn revert_command() -> RevertCommand {
+    "(git clean -fdq . && git reset --hard)".to_string()
 }
 
 pub type TcrCommand = String;
+
+pub type TestCommand = String;
+
+pub type CommitCommand = String;
+
+pub type RevertCommand = String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConfigurationNotFound;
