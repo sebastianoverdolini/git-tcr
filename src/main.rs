@@ -1,7 +1,7 @@
 extern crate core;
 
 use std::env::current_dir;
-use std::path::{Path, PathBuf};
+use std::path::{Path};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 use clap::Parser;
@@ -61,15 +61,6 @@ fn watched(tcr: fn()) {
     for result in rx {
         match result {
             Ok(events) => {
-                println!("/////////////////////");
-                let a: Vec<PathBuf> = events.iter()
-                    .flat_map(|e| e.paths.clone()) // Cloniamo se `paths` non è `Copy`
-                    .collect();
-
-                a.iter().for_each(|p| {
-                    println!("{:?}", p);
-                });
-                println!("/////////////////////");
                 let is_considered = events.iter()
                     .any(|e| e.paths.iter().any(|path|
                         !is_within_git_directory(path) &&
