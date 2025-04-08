@@ -9,7 +9,7 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
     let commit = commit_command(config.no_verify.unwrap_or(false));
     let revert = revert_command();
 
-    Ok(format!("({test} && {commit} || {revert})"))
+    Ok(format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})"))
 }
 
 fn test_command(test: String) -> String {
@@ -17,7 +17,7 @@ fn test_command(test: String) -> String {
 }
 
 fn commit_command(no_verify: bool) -> String {
-    std::iter::once("git add . && git commit -m WIP")
+    std::iter::once("git commit -m WIP")
         .chain(no_verify.then_some("--no-verify"))
         .collect::<Vec<_>>()
         .join(" ")
@@ -57,7 +57,7 @@ mod tcr_tests
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),
-            "(pnpm test && git add . && git commit -m WIP || (git clean -fdq . && git reset --hard))");
+            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (pnpm test && git commit -m WIP || (git clean -fdq . && git reset --hard))");
     }
 
     #[test]
@@ -72,7 +72,7 @@ mod tcr_tests
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),
-            "(npm test && git add . && git commit -m WIP --no-verify || (git clean -fdq . && git reset --hard))");
+            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (npm test && git commit -m WIP --no-verify || (git clean -fdq . && git reset --hard))");
     }
 
     #[test]
@@ -87,7 +87,7 @@ mod tcr_tests
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap(),
-            "(npm test && git add . && git commit -m WIP || (git clean -fdq . && git reset --hard))");
+            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (npm test && git commit -m WIP || (git clean -fdq . && git reset --hard))");
     }
 
 
