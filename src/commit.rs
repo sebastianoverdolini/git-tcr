@@ -13,7 +13,7 @@ pub type CommitCommand = String;
 pub fn commit_command(msg: fn() -> String, config: CommitConfig) -> CommitCommand {
     let msg = msg();
 
-    std::iter::once(format!("git commit -m {msg}"))
+    std::iter::once(format!("git commit -m \"{msg}\""))
         .chain(config.no_verify.unwrap_or(false).then_some("--no-verify".to_string()))
         .collect::<Vec<_>>()
         .join(" ")
@@ -31,7 +31,7 @@ mod commit_command_test
             || "WIP".to_string(),
             CommitConfig { no_verify: Some(false) });
 
-        assert_eq!(cmd, "git commit -m WIP");
+        assert_eq!(cmd, "git commit -m \"WIP\"");
     }
 
     #[test]
@@ -41,7 +41,7 @@ mod commit_command_test
             || "WIP".to_string(),
             CommitConfig { no_verify: None });
 
-        assert_eq!(cmd, "git commit -m WIP");
+        assert_eq!(cmd, "git commit -m \"WIP\"");
     }
 
     #[test]
@@ -51,6 +51,6 @@ mod commit_command_test
             || "WIP".to_string(),
             CommitConfig { no_verify: Some(true) });
 
-        assert_eq!(cmd, "git commit -m WIP --no-verify");
+        assert_eq!(cmd, "git commit -m \"WIP\" --no-verify");
     }
 }
