@@ -4,6 +4,8 @@ use std::process::{Command, Stdio};
 // TODO Test
 // TODO Manage fallbacks better
 // TODO Speak more: highlight the generation of message through AI or not.
+// TODO Improve prompt
+// TODO Diff with previous commit
 
 const PROMPT: &str = "\
 Given the following git diff, write a commit message.\
@@ -11,25 +13,20 @@ Do not output anything else than the commit message.\
 The commit message must be in the imperative form.\
 The commit message must be max 72 characters long.\
 The commit message must be a unique sentence.\
+Keep the message simple. \
 The first letter of the commit message must be capitalized.";
 
 pub fn message() -> String {
     let prompt = format!("{PROMPT}\n{}", get_diff());
 
-    match generate_ai_message(&prompt) {
-        Some(msg) if !msg.is_empty() => {
-            println!("AI MESSAGE");
-            msg
-        }
-        Some(_) => {
-            println!("EMPTY AI MESSAGE, DEFAULT WIP");
-            "WIP".to_string()
-        }
-        None => {
-            println!("AI MESSAGE DIDN'T WORK, DEFAULT WIP");
-            "WIP".to_string()
-        }
-    }
+    let msg = match generate_ai_message(&prompt) {
+        Some(msg) if !msg.is_empty() => msg,
+        Some(_) => "WIP".to_string(),
+        None => "WIP".to_string()
+
+    };
+
+    msg.trim_matches('"').to_string()
 }
 
 fn generate_ai_message(prompt: &str) -> Option<String> {
