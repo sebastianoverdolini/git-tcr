@@ -11,6 +11,7 @@ use commit::commit_command;
 use revert::revert_command;
 use test::test_command;
 use crate::config::yaml_config;
+use crate::message::message;
 use crate::tcr::tcr_command;
 
 mod tcr;
@@ -18,6 +19,7 @@ mod config;
 mod test;
 mod revert;
 mod commit;
+mod message;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -41,10 +43,12 @@ fn main()
 }
 
 fn tcr() {
+    let commit =
+        |config| commit_command(message, config);
     let result = tcr_command(
         || yaml_config(current_dir().unwrap()),
         test_command,
-        commit_command,
+        commit,
         revert_command);
     match result {
         Ok(cmd) => {
