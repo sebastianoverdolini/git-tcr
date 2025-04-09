@@ -17,16 +17,18 @@ pub fn tcr(
     test: Test,
     commit: Commit,
     revert: Revert,
-) -> Result<(), ConfigurationNotFound>
-{
+) -> Result<(), ConfigurationNotFound> {
     let config = config().ok_or(ConfigurationNotFound)?;
 
-    let test = test(config.clone().test);
-    let commit = commit(config.clone().commit);
-    let revert = revert();
+    let r = format!(
+        "git add . &&  [ -n \"$(git status --porcelain)\" ] && ({} && {} || {})",
+        test(config.test),
+        commit(config.commit),
+        revert()
+    );
 
-    let r = format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})");
-    Ok(exec("sh".to_string(), vec!["-c".to_string(), r]))
+    exec("sh".to_string(), vec!["-c".to_string(), r]);
+    Ok(())
 }
 
 #[cfg(test)]
