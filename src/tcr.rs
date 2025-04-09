@@ -3,26 +3,24 @@ use crate::config::Config;
 
 pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, ConfigurationNotFound>
 {
-    let config = config().ok_or(ConfigurationNotFound)?;
-
-    Ok(tcr_command(
-        || test_command(config.clone().test),
-        || commit_command(config.clone().no_verify),
-        || revert_command()))
+    tcr_command(
+        config, test_command, commit_command, revert_command)
 }
 
 fn tcr_command(
-    test_command: impl Fn() -> TestCommand,
-    commit_command: impl Fn() -> CommitCommand,
-    revert_command: impl Fn() -> RevertCommand
-) -> TcrCommand
+    config: fn() -> Option<Config>,
+    test_command: fn(test: String) -> TestCommand,
+    commit_command: fn(no_verify: Option<bool>) -> CommitCommand,
+    revert_command: fn() -> RevertCommand
+) -> Result<TcrCommand, ConfigurationNotFound>
 {
-    // TODO To test independently
-    let test = test_command();
-    let commit = commit_command();
+    let config = config().ok_or(ConfigurationNotFound)?;
+
+    let test = test_command(config.clone().test);
+    let commit = commit_command(config.clone().no_verify);
     let revert = revert_command();
 
-    format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})")
+    Ok(format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})"))
 }
 
 fn test_command(test: String) -> TestCommand {
@@ -124,19 +122,41 @@ mod tcr_tests
 #[cfg(test)]
 mod tcr_command_test
 {
-    use crate::tcr::{tcr_command};
+    use crate::config::Config;
+    use crate::tcr::{tcr_command, ConfigurationNotFound};
 
     #[test]
     fn cmd()
     {
+        // TODO Test better with mocks?
         let cmd = tcr_command(
-            || "test".to_string(),
-            || "commit".to_string(),
+            || Some(Config
+            {
+                test: String::from("test"),
+                no_verify: Some(true)
+            }),
+            |test| format!("{test}").to_string(),
+            |no_verify| format!("commit {no_verify:?}").to_string(),
             || "revert".to_string());
 
+        assert!(cmd.is_ok());
         assert_eq!(
-            cmd,
-            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit || revert)");
+            cmd.unwrap(),
+            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit Some(true) || revert)");
+    }
+
+    #[test]
+    fn no_conf()
+    {
+        // TODO Throw exception on usages?
+        let cmd = tcr_command(
+            || None,
+            |_test| "".to_string(),
+            |_no_verify| "".to_string(),
+            || "".to_string());
+
+        assert!(cmd.is_err());
+        assert_eq!(cmd.unwrap_err(), ConfigurationNotFound);
     }
 }
 
