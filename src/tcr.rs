@@ -1,5 +1,5 @@
 use std::fmt;
-use crate::commit::Commit;
+use crate::commit::{Commit, CommitConfig};
 use crate::config::Config;
 use crate::revert::Revert;
 use crate::test::Test;
@@ -14,7 +14,7 @@ pub fn tcr_command(
     let config = config().ok_or(ConfigurationNotFound)?;
 
     let test = test(config.clone().test);
-    let commit = commit(config.clone().no_verify);
+    let commit = commit(CommitConfig { no_verify: config.clone().no_verify });
     let revert = revert();
 
     Ok(format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})"))
@@ -48,13 +48,13 @@ mod tcr_command_test
                 no_verify: Some(true)
             }),
             |test| format!("{test}").to_string(),
-            |no_verify| format!("commit {no_verify:?}").to_string(),
+            |config| format!("commit {config:?}").to_string(),
             || "revert".to_string());
 
         assert!(cmd.is_ok());
         assert_eq!(
             cmd.unwrap(),
-            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit Some(true) || revert)");
+            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit CommitConfig { no_verify: Some(true) } || revert)");
     }
 
     #[test]
@@ -64,7 +64,7 @@ mod tcr_command_test
         let cmd = tcr_command(
             || None,
             |_test| "".to_string(),
-            |_no_verify| "".to_string(),
+            |_config| "".to_string(),
             || "".to_string());
 
         assert!(cmd.is_err());

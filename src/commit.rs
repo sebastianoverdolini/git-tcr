@@ -1,23 +1,30 @@
-pub type Commit = fn(no_verify: Option<bool>) -> CommitCommand;
+pub type Commit = fn(CommitConfig) -> CommitCommand;
 
-pub fn commit_command(no_verify: Option<bool>) -> CommitCommand {
-    std::iter::once("git commit -m WIP")
-        .chain(no_verify.unwrap_or(false).then_some("--no-verify"))
-        .collect::<Vec<_>>()
-        .join(" ")
+#[derive(Debug)]
+pub struct CommitConfig
+{
+    pub no_verify: Option<bool>
 }
 
 pub type CommitCommand = String;
 
+pub fn commit_command(config: CommitConfig) -> CommitCommand {
+    std::iter::once("git commit -m WIP")
+        .chain(config.no_verify.unwrap_or(false).then_some("--no-verify"))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 #[cfg(test)]
 mod commit_command_test
 {
-    use crate::commit::commit_command;
+    use crate::commit::{commit_command, CommitConfig};
 
     #[test]
     fn verifying()
     {
-        let cmd = commit_command(Some(false));
+        let cmd = commit_command(
+            CommitConfig { no_verify: Some(false) });
 
         assert_eq!(cmd, "git commit -m WIP");
     }
@@ -25,7 +32,8 @@ mod commit_command_test
     #[test]
     fn none()
     {
-        let cmd = commit_command(None);
+        let cmd = commit_command(
+            CommitConfig { no_verify: None });
 
         assert_eq!(cmd, "git commit -m WIP");
     }
@@ -33,7 +41,8 @@ mod commit_command_test
     #[test]
     fn no_verify()
     {
-        let cmd = commit_command(Some(true));
+        let cmd = commit_command(
+            CommitConfig { no_verify: Some(true) });
 
         assert_eq!(cmd, "git commit -m WIP --no-verify");
     }
