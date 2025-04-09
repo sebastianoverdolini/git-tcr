@@ -83,7 +83,7 @@ mod tcr_command_test
 }
 
 pub fn tcr(
-    mut exec: impl FnMut(TcrCommand) -> (),
+    mut exec: impl FnMut(String, Vec<String>) -> (),
     config: fn() -> Option<TcrConfig>,
     test: Test,
     commit: Commit,
@@ -96,7 +96,7 @@ pub fn tcr(
         commit,
         revert
     )?;
-    Ok(exec(r))
+    Ok(exec("sh".to_string(), vec!["-c".to_string(), r]))
 }
 
 #[cfg(test)]
@@ -110,7 +110,10 @@ mod tcr_test
     {
         let mut cmd = "".to_string();
         let res = tcr(
-            |c| cmd = c,
+            |program, args| cmd = {
+                let a = args.join(" ");
+                format!("{program} {a}")
+            },
             || Some(TcrConfig
             {
                 test: String::from("test"),
@@ -125,7 +128,7 @@ mod tcr_test
         assert!(res.is_ok());
         assert_eq!(
             cmd,
-            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit CommitConfig { no_verify: Some(true) } || revert)");
+            "sh -c git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit CommitConfig { no_verify: Some(true) } || revert)");
     }
 
     #[test]
@@ -134,7 +137,7 @@ mod tcr_test
         let mut cmd = "".to_string();
 
         let result = tcr(
-            |_c| cmd = "called".to_string(),
+            |_, _| cmd = "called".to_string(),
             || None,
             |_test| "".to_string(),
             |_config| "".to_string(),

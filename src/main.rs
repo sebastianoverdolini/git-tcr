@@ -12,7 +12,6 @@ use revert::revert_command;
 use test::test_command;
 use crate::config::yaml_config;
 use crate::message::message;
-use crate::tcr::{TcrCommand};
 
 mod tcr;
 mod config;
@@ -57,10 +56,9 @@ fn tcr() {
     }
 }
 
-fn sh(cmd: TcrCommand) {
-    Command::new("sh")
-        .arg("-c")
-        .arg(cmd)
+fn sh(program: String, args: Vec<String>) {
+    Command::new(program)
+        .args(args)
         .spawn()
         .expect("failed to execute process")
         .wait()
