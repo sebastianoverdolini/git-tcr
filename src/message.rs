@@ -7,14 +7,16 @@ use std::process::{Command, Stdio};
 // TODO Improve prompt
 // TODO Diff with previous commit
 
-const PROMPT: &str = "\
-Given the following git diff, write a commit message.\
+const PROMPT: &str = "
+Write a concise commit message based on the provided git diff. \
+The message must: \
+Be in the imperative mood. \
+Start with a capital letter. \
+Keep within 72 characters. \
+Clearly explain what was changed.\
 Do not output anything else than the commit message.\
-The commit message must be in the imperative form.\
-The commit message must be max 72 characters long.\
-The commit message must be a unique sentence.\
-Keep the message simple. \
-The first letter of the commit message must be capitalized.";
+\
+Here's the git diff: \n";
 
 pub fn message() -> String {
     let prompt = format!("{PROMPT}\n{}", get_diff());
@@ -45,7 +47,7 @@ fn generate_ai_message(prompt: &str) -> Option<String> {
 
 fn get_diff() -> String {
     Command::new("git")
-        .args(["diff"])
+        .args(["diff", "HEAD", "--patience", "-U15"])
         .output()
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())
