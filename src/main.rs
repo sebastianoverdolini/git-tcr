@@ -12,7 +12,7 @@ use revert::revert_command;
 use test::test_command;
 use crate::config::yaml_config;
 use crate::message::message;
-use crate::tcr::tcr_command;
+use crate::tcr::{TcrCommand};
 
 mod tcr;
 mod config;
@@ -45,23 +45,26 @@ fn main()
 fn tcr() {
     let commit =
         |config| commit_command(message, config);
-    let result = tcr_command(
+    let result = tcr::tcr(
+        sh,
         || yaml_config(current_dir().unwrap()),
         test_command,
         commit,
         revert_command);
     match result {
-        Ok(cmd) => {
-            Command::new("sh")
-                .arg("-c")
-                .arg(cmd)
-                .spawn()
-                .expect("failed to execute process")
-                .wait()
-                .expect("TODO: panic message");
-        }
+        Ok(_) => println!("Done"),
         Err(error) => println!("Error: {}", error)
     }
+}
+
+fn sh(cmd: TcrCommand) {
+    Command::new("sh")
+        .arg("-c")
+        .arg(cmd)
+        .spawn()
+        .expect("failed to execute process")
+        .wait()
+        .expect("TODO: panic message");
 }
 
 fn watched(tcr: fn()) {

@@ -81,3 +81,67 @@ mod tcr_command_test
         assert_eq!(cmd.unwrap_err(), ConfigurationNotFound);
     }
 }
+
+pub fn tcr(
+    mut exec: impl FnMut(TcrCommand) -> (),
+    config: fn() -> Option<TcrConfig>,
+    test: Test,
+    commit: Commit,
+    revert: Revert,
+) -> Result<(), ConfigurationNotFound>
+{
+    let r = tcr_command(
+        config,
+        test,
+        commit,
+        revert
+    )?;
+    Ok(exec(r))
+}
+
+#[cfg(test)]
+mod tcr_test
+{
+    use crate::commit::CommitConfig;
+    use crate::tcr::{tcr, ConfigurationNotFound, TcrConfig};
+
+    #[test]
+    fn cmd()
+    {
+        let mut cmd = "".to_string();
+        let res = tcr(
+            |c| cmd = c,
+            || Some(TcrConfig
+            {
+                test: String::from("test"),
+                commit: CommitConfig {
+                    no_verify: Some(true)
+                }
+            }),
+            |test| format!("{test}").to_string(),
+            |config| format!("commit {config:?}").to_string(),
+            || "revert".to_string());
+
+        assert!(res.is_ok());
+        assert_eq!(
+            cmd,
+            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit CommitConfig { no_verify: Some(true) } || revert)");
+    }
+
+    #[test]
+    fn config_not_found()
+    {
+        let mut cmd = "".to_string();
+
+        let result = tcr(
+            |_c| cmd = "called".to_string(),
+            || None,
+            |_test| "".to_string(),
+            |_config| "".to_string(),
+            || "".to_string());
+
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), ConfigurationNotFound);
+        assert_eq!(cmd, "");
+    }
+}
