@@ -56,7 +56,7 @@ fn tcr() {
     }
 }
 
-fn sh(program: String, args: Vec<String>) {
+fn sh(program: &str, args: Vec<&str>) {
     Command::new(program)
         .args(args)
         .spawn()

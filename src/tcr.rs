@@ -12,7 +12,7 @@ pub struct TcrConfig
 }
 
 pub fn tcr(
-    mut exec: impl FnMut(String, Vec<String>) -> (),
+    mut exec: impl FnMut(&str, Vec<&str>) -> (),
     config: fn() -> Option<TcrConfig>,
     test: Test,
     commit: Commit,
@@ -27,7 +27,7 @@ pub fn tcr(
         revert()
     );
 
-    exec("sh".to_string(), vec!["-c".to_string(), r]);
+    exec("sh", vec!["-c", r.as_str()]);
     Ok(())
 }
 
