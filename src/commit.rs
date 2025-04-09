@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 pub type Commit = fn(CommitConfig) -> CommitCommand;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct CommitConfig
 {
     pub no_verify: Option<bool>

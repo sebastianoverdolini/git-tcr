@@ -1,5 +1,5 @@
 use std::fmt;
-use crate::commit::{Commit, CommitConfig};
+use crate::commit::{Commit};
 use crate::config::Config;
 use crate::revert::Revert;
 use crate::test::Test;
@@ -14,7 +14,7 @@ pub fn tcr_command(
     let config = config().ok_or(ConfigurationNotFound)?;
 
     let test = test(config.clone().test);
-    let commit = commit(CommitConfig { no_verify: config.clone().no_verify });
+    let commit = commit(config.clone().commit);
     let revert = revert();
 
     Ok(format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})"))
@@ -34,6 +34,7 @@ impl fmt::Display for ConfigurationNotFound {
 #[cfg(test)]
 mod tcr_command_test
 {
+    use crate::commit::CommitConfig;
     use crate::config::Config;
     use crate::tcr::{tcr_command, ConfigurationNotFound};
 
@@ -45,7 +46,9 @@ mod tcr_command_test
             || Some(Config
             {
                 test: String::from("test"),
-                no_verify: Some(true)
+                commit: CommitConfig {
+                    no_verify: Some(true)
+                }
             }),
             |test| format!("{test}").to_string(),
             |config| format!("commit {config:?}").to_string(),

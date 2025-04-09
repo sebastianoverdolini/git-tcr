@@ -1,1 +1,3 @@
 test: "cargo test"
+commit:
+  no_verify: null

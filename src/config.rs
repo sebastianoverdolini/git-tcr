@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use crate::commit::CommitConfig;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config
 {
     pub test: String,
-    #[serde(default)]
-    pub no_verify: Option<bool>
+    pub commit: CommitConfig
 }
 
 pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config>
@@ -21,6 +21,7 @@ pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config>
 mod yaml_config_tests {
     use std::fs::{create_dir_all, remove_dir_all, write};
     use std::path::Path;
+    use crate::commit::CommitConfig;
     use crate::config;
     use crate::config::Config;
 
@@ -34,7 +35,8 @@ mod yaml_config_tests {
 
         let yaml_string = r#"
         test: npm test
-        no_verify: true
+        commit:
+            no_verify: true
         "#;
         write(&config_path, yaml_string).expect("Failed to write test config");
 
@@ -43,7 +45,9 @@ mod yaml_config_tests {
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
             test: String::from("npm test"),
-            no_verify: Some(true)
+            commit: CommitConfig {
+                no_verify: Some(true)
+            }
         });
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
@@ -59,7 +63,8 @@ mod yaml_config_tests {
 
         write(&config_path, r#"
         test: npm test
-        before: []
+        commit:
+            no_verify: null
         "#).expect("Failed to write test config");
 
         let result = config::yaml_config(Path::new(test_dir));
@@ -67,7 +72,9 @@ mod yaml_config_tests {
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
             test: String::from("npm test"),
-            no_verify: None
+            commit: CommitConfig {
+                no_verify: None
+            }
         });
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
