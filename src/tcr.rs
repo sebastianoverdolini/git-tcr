@@ -3,19 +3,23 @@ use crate::config::Config;
 
 pub fn tcr_command(
     config: fn() -> Option<Config>,
-    test_command: fn(test: String) -> TestCommand,
-    commit_command: fn(no_verify: Option<bool>) -> CommitCommand,
-    revert_command: fn() -> RevertCommand
+    test: Test,
+    commit: Commit,
+    revert: Revert,
 ) -> Result<TcrCommand, ConfigurationNotFound>
 {
     let config = config().ok_or(ConfigurationNotFound)?;
 
-    let test = test_command(config.clone().test);
-    let commit = commit_command(config.clone().no_verify);
-    let revert = revert_command();
+    let test = test(config.clone().test);
+    let commit = commit(config.clone().no_verify);
+    let revert = revert();
 
     Ok(format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})"))
 }
+
+type Test = fn(test: String) -> TestCommand;
+type Commit = fn(no_verify: Option<bool>) -> CommitCommand;
+type Revert = fn() -> RevertCommand;
 
 pub fn test_command(test: String) -> TestCommand {
     test
