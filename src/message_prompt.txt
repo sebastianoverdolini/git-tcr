@@ -1,0 +1,9 @@
+Write a concise commit message based on the provided git diff.
+The message must:
+- Be in the imperative mood.
+- Start with a capital letter.
+- Keep within 72 characters.
+- Clearly explain what was changed.
+- Output only the commit message.
+
+Here's the git diff:

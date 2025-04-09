@@ -7,16 +7,7 @@ use std::process::{Command, Stdio};
 // TODO Improve prompt
 // TODO Diff with previous commit
 
-const PROMPT: &str = "
-Write a concise commit message based on the provided git diff. \
-The message must: \
-Be in the imperative mood. \
-Start with a capital letter. \
-Keep within 72 characters. \
-Clearly explain what was changed.\
-Do not output anything else than the commit message.\
-\
-Here's the git diff: \n";
+const PROMPT: &str = include_str!("message_prompt.txt");
 
 pub fn message() -> String {
     let prompt = format!("{PROMPT}\n{}", get_diff());
