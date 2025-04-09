@@ -8,7 +8,7 @@ pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, Configurati
 
     Ok(tcr_command(
         || test_command(config.test.clone()),
-        || commit_command(config.clone().no_verify.unwrap_or(false)),
+        || commit_command(config.clone().no_verify),
         || revert_command()))
 }
 
@@ -30,9 +30,9 @@ fn test_command(test: String) -> TestCommand {
     test
 }
 
-fn commit_command(no_verify: bool) -> CommitCommand {
+fn commit_command(no_verify: Option<bool>) -> CommitCommand {
     std::iter::once("git commit -m WIP")
-        .chain(no_verify.then_some("--no-verify"))
+        .chain(no_verify.unwrap_or(false).then_some("--no-verify"))
         .collect::<Vec<_>>()
         .join(" ")
 }
@@ -144,7 +144,15 @@ mod commit_command_test
     #[test]
     fn verifying()
     {
-        let cmd = commit_command(false);
+        let cmd = commit_command(Some(false));
+
+        assert_eq!(cmd, "git commit -m WIP");
+    }
+
+    #[test]
+    fn none()
+    {
+        let cmd = commit_command(None);
 
         assert_eq!(cmd, "git commit -m WIP");
     }
@@ -152,7 +160,7 @@ mod commit_command_test
     #[test]
     fn no_verify()
     {
-        let cmd = commit_command(true);
+        let cmd = commit_command(Some(true));
 
         assert_eq!(cmd, "git commit -m WIP --no-verify");
     }
