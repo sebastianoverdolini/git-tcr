@@ -45,18 +45,18 @@ To enable AI-powered commit messages, you need to install **Ollama** and the **M
    Ollama is a tool to run various AI models locally. You can download it from the official website:
     - [Ollama Download](https://ollama.com/download)
 
-2. **Install Mistral Model**:
-   After installing Ollama, you need to download the Mistral model. Run the following command to install it:
+2. **Install qwen2.5-coder:14b Model**:
+   After installing Ollama, you need to download the qwen2.5-coder:14b model. Run the following command to install it:
     ```bash
-   ollama pull mistral
+   ollama pull qwen2.5-coder:14b
     ```
 3. **Ensure that Ollama is available in your PATH: Verify the installation by running:**
     ```bash
     ollama --version
     ```
-Once Ollama and Mistral are installed, the TCR tool will automatically use them to generate commit messages based on your Git diff.
+Once Ollama and qwen2.5-coder:14b are installed, the TCR tool will automatically use them to generate commit messages based on your Git diff.
 
-If Ollama or Mistral is not available, TCR fallbacks to using a default commit message, "WIP".
+If Ollama or qwen2.5-coder:14b is not available, TCR fallbacks to using a default commit message, "WIP".
 
 ## Usage
 ```
