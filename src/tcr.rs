@@ -1,11 +1,18 @@
 use std::fmt;
-use crate::commit::{Commit};
-use crate::config::Config;
+use serde::{Deserialize, Serialize};
+use crate::commit::{Commit, CommitConfig};
 use crate::revert::Revert;
 use crate::test::Test;
 
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct TcrConfig
+{
+    pub test: String,
+    pub commit: CommitConfig
+}
+
 pub fn tcr_command(
-    config: fn() -> Option<Config>,
+    config: fn() -> Option<TcrConfig>,
     test: Test,
     commit: Commit,
     revert: Revert,
@@ -35,7 +42,7 @@ impl fmt::Display for ConfigurationNotFound {
 mod tcr_command_test
 {
     use crate::commit::CommitConfig;
-    use crate::config::Config;
+    use crate::tcr::TcrConfig;
     use crate::tcr::{tcr_command, ConfigurationNotFound};
 
     #[test]
@@ -43,7 +50,7 @@ mod tcr_command_test
     {
         // TODO Test better with mocks?
         let cmd = tcr_command(
-            || Some(Config
+            || Some(TcrConfig
             {
                 test: String::from("test"),
                 commit: CommitConfig {
@@ -74,4 +81,3 @@ mod tcr_command_test
         assert_eq!(cmd.unwrap_err(), ConfigurationNotFound);
     }
 }
-
