@@ -8,7 +8,7 @@ use clap::Parser;
 use notify::{RecursiveMode};
 use notify_debouncer_full::new_debouncer;
 use crate::config::yaml_config;
-use crate::tcr::{tcr_cmd};
+use crate::tcr::{commit_command, revert_command, tcr_command, test_command};
 
 mod tcr;
 mod config;
@@ -35,7 +35,11 @@ fn main()
 }
 
 fn tcr() {
-    let result = tcr_cmd(|| yaml_config(current_dir().unwrap()));
+    let result = tcr_command(
+        || yaml_config(current_dir().unwrap()),
+        test_command,
+        commit_command,
+        revert_command);
     match result {
         Ok(cmd) => {
             Command::new("sh")
