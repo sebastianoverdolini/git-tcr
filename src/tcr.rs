@@ -122,6 +122,25 @@ mod tcr_tests
 }
 
 #[cfg(test)]
+mod tcr_command_test
+{
+    use crate::tcr::{tcr_command};
+
+    #[test]
+    fn cmd()
+    {
+        let cmd = tcr_command(
+            || "test".to_string(),
+            || "commit".to_string(),
+            || "revert".to_string());
+
+        assert_eq!(
+            cmd,
+            "git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit || revert)");
+    }
+}
+
+#[cfg(test)]
 mod test_command_test
 {
     use crate::tcr::test_command;
