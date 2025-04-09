@@ -3,11 +3,10 @@ use crate::config::Config;
 
 pub fn tcr_cmd(config: fn() -> Option<Config>) -> Result<TcrCommand, ConfigurationNotFound>
 {
-    // TODO To simplify. Avoid cloning. Pass directly values?
     let config = config().ok_or(ConfigurationNotFound)?;
 
     Ok(tcr_command(
-        || test_command(config.test.clone()),
+        || test_command(config.clone().test),
         || commit_command(config.clone().no_verify),
         || revert_command()))
 }
