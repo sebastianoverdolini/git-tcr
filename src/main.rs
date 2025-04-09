@@ -1,17 +1,23 @@
 extern crate core;
 
 use std::env::current_dir;
-use std::path::{Path};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::Duration;
 use clap::Parser;
-use notify::{RecursiveMode};
+use notify::RecursiveMode;
 use notify_debouncer_full::new_debouncer;
+use commit::commit_command;
+use revert::revert_command;
+use test::test_command;
 use crate::config::yaml_config;
-use crate::tcr::{commit_command, revert_command, tcr_command, test_command};
+use crate::tcr::tcr_command;
 
 mod tcr;
 mod config;
+mod test;
+mod revert;
+mod commit;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

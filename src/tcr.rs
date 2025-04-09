@@ -1,5 +1,8 @@
 use std::fmt;
+use crate::commit::Commit;
 use crate::config::Config;
+use crate::revert::Revert;
+use crate::test::Test;
 
 pub fn tcr_command(
     config: fn() -> Option<Config>,
@@ -17,32 +20,7 @@ pub fn tcr_command(
     Ok(format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})"))
 }
 
-type Test = fn(test: String) -> TestCommand;
-type Commit = fn(no_verify: Option<bool>) -> CommitCommand;
-type Revert = fn() -> RevertCommand;
-
-pub fn test_command(test: String) -> TestCommand {
-    test
-}
-
-pub fn commit_command(no_verify: Option<bool>) -> CommitCommand {
-    std::iter::once("git commit -m WIP")
-        .chain(no_verify.unwrap_or(false).then_some("--no-verify"))
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
-pub fn revert_command() -> RevertCommand {
-    "(git clean -fdq . && git reset --hard)".to_string()
-}
-
 pub type TcrCommand = String;
-
-pub type TestCommand = String;
-
-pub type CommitCommand = String;
-
-pub type RevertCommand = String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConfigurationNotFound;
@@ -94,60 +72,3 @@ mod tcr_command_test
     }
 }
 
-#[cfg(test)]
-mod test_command_test
-{
-    use crate::tcr::test_command;
-
-    #[test]
-    fn cmd()
-    {
-        let cmd = test_command("pnpm test".to_string());
-
-        assert_eq!(cmd, "pnpm test");
-    }
-}
-
-#[cfg(test)]
-mod commit_command_test
-{
-    use crate::tcr::commit_command;
-
-    #[test]
-    fn verifying()
-    {
-        let cmd = commit_command(Some(false));
-
-        assert_eq!(cmd, "git commit -m WIP");
-    }
-
-    #[test]
-    fn none()
-    {
-        let cmd = commit_command(None);
-
-        assert_eq!(cmd, "git commit -m WIP");
-    }
-
-    #[test]
-    fn no_verify()
-    {
-        let cmd = commit_command(Some(true));
-
-        assert_eq!(cmd, "git commit -m WIP --no-verify");
-    }
-}
-
-#[cfg(test)]
-mod revert_command_test
-{
-    use crate::tcr::revert_command;
-
-    #[test]
-    fn cmd()
-    {
-        let cmd = revert_command();
-
-        assert_eq!(cmd, "(git clean -fdq . && git reset --hard)");
-    }
-}
