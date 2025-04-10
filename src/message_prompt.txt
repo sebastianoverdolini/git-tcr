@@ -1,8 +1,0 @@
-Generate a concise commit message based on the provided git diff. The message must:
-- Be in imperative mood.
-- Start with a capital letter.
-- Be within 72 characters.
-- Clearly explain what was changed and why.
-- Output only the commit message—nothing else.
-
-Here’s the git diff:

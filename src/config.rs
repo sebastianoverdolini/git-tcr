@@ -1,7 +1,15 @@
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use crate::tcr::TcrConfig;
 
-pub fn yaml_config(location: impl Into<PathBuf>) -> Option<TcrConfig>
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct Config
+{
+    pub test: String,
+    #[serde(default)]
+    pub no_verify: Option<bool>
+}
+
+pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config>
 {
     let config_path = location.into().join("tcr.yaml");
     let content = std::fs::read_to_string(&config_path).ok()?;
@@ -13,9 +21,8 @@ pub fn yaml_config(location: impl Into<PathBuf>) -> Option<TcrConfig>
 mod yaml_config_tests {
     use std::fs::{create_dir_all, remove_dir_all, write};
     use std::path::Path;
-    use crate::commit::CommitConfig;
     use crate::config;
-    use crate::tcr::TcrConfig;
+    use crate::config::Config;
 
     #[test]
     fn it_returns_the_content_of_the_config_if_the_file_is_present_in_the_current_location() {
@@ -27,19 +34,16 @@ mod yaml_config_tests {
 
         let yaml_string = r#"
         test: npm test
-        commit:
-            no_verify: true
+        no_verify: true
         "#;
         write(&config_path, yaml_string).expect("Failed to write test config");
 
         let result = config::yaml_config(Path::new(test_dir));
 
         assert!(result.is_some());
-        assert_eq!(result.unwrap(), TcrConfig {
+        assert_eq!(result.unwrap(), Config {
             test: String::from("npm test"),
-            commit: CommitConfig {
-                no_verify: Some(true)
-            }
+            no_verify: Some(true)
         });
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
@@ -55,18 +59,15 @@ mod yaml_config_tests {
 
         write(&config_path, r#"
         test: npm test
-        commit:
-            no_verify: null
+        before: []
         "#).expect("Failed to write test config");
 
         let result = config::yaml_config(Path::new(test_dir));
 
         assert!(result.is_some());
-        assert_eq!(result.unwrap(), TcrConfig {
+        assert_eq!(result.unwrap(), Config {
             test: String::from("npm test"),
-            commit: CommitConfig {
-                no_verify: None
-            }
+            no_verify: None
         });
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
