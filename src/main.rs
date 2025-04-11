@@ -7,11 +7,11 @@ use std::time::Duration;
 use clap::Parser;
 use notify::RecursiveMode;
 use notify_debouncer_full::new_debouncer;
-use commit::commit_command;
-use revert::revert_command;
-use test::test_command;
-use crate::config::yaml_config;
-use crate::tcr::tcr_command;
+use crate::commit::commit_command;
+use crate::config::{yaml_config};
+use crate::revert::revert_command;
+use crate::tcr::{tcr};
+use crate::test::test_command;
 
 mod tcr;
 mod config;
@@ -32,31 +32,33 @@ fn main()
 
     if args.watch
     {
-        watched(tcr)
+        watched(_tcr)
     }
     else
     {
-        tcr()
+        _tcr()
     }
 }
 
-fn tcr() {
-    let result = tcr_command(
-        || yaml_config(current_dir().unwrap()),
+fn _tcr() {
+    let config = || yaml_config(current_dir().unwrap());
+    match tcr(
+        config,
         test_command,
         commit_command,
-        revert_command);
-    match result {
-        Ok(cmd) => {
-            Command::new("sh")
-                .arg("-c")
-                .arg(cmd)
+        revert_command,
+        |program, args| {
+            Command::new(program)
+                .args(args)
                 .spawn()
                 .expect("failed to execute process")
                 .wait()
                 .expect("TODO: panic message");
-        }
-        Err(error) => println!("Error: {}", error)
+        }) {
+        Ok(()) =>
+            println!("Done"),
+        Err(configuration_not_found) =>
+            eprintln!("{}", configuration_not_found)
     }
 }
 
