@@ -36,17 +36,6 @@ To configure TCR for your project, follow these steps:
 git tcr
 ```
 
-### Watch Mode
-You can also run TCR in **watch mode** to automatically run it
-whenever a file is changed. To enable this mode, use the `--watch` flag:
-
-```
-git tcr --watch
-```
-
-The git-ignored files and the `.git` directory are
-automatically excluded from the watch.
-
 ## Conclusion
 By adopting TCR in your software development workflow, you can streamline your 
 development process, minimize errors, and deliver high-quality code 
