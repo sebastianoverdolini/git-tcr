@@ -29,10 +29,9 @@ fn _tcr() {
         |program, args| {
             Command::new(program)
                 .args(args)
-                .spawn()
-                .expect("failed to execute process")
-                .wait()
-                .expect("TODO: panic message");
+                .stdout(std::process::Stdio::inherit())
+                .stderr(std::process::Stdio::inherit())
+                .output()
         }) {
         Ok(()) =>
             println!("Done"),

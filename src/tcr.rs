@@ -1,4 +1,5 @@
 use std::fmt;
+use std::process::{Output};
 use crate::commit::{Commit, CommitConfig};
 use crate::config::Config;
 use crate::revert::{Revert};
@@ -9,7 +10,8 @@ pub fn tcr(
     test: Test,
     commit: Commit,
     revert: Revert,
-    exec: impl Fn(&str, &[&str])) -> Result<(), ConfigurationNotFound>
+    exec: impl Fn(&str, &[&str]) -> Result<Output, std::io::Error>,
+) -> Result<(), ConfigurationNotFound>
 {
     let config = config().ok_or(ConfigurationNotFound)?;
 
@@ -17,9 +19,13 @@ pub fn tcr(
     let commit = commit(CommitConfig { no_verify: config.clone().no_verify });
     let revert = revert();
 
-    let cmd = format!("git add . &&  [ -n \"$(git status --porcelain)\" ] && ({test} && {commit} || {revert})");
+    exec("git", &["add", "."]).expect("git add . works");
+    exec("sh", &["-c", &test]).expect("test command works");
 
-    Ok(exec("sh", &["-c", &cmd]))
+    let cmd = format!("({test} && {commit} || {revert})");
+
+    exec("sh", &["-c", &cmd]).expect("git add . works");
+    Ok(())
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -36,18 +42,29 @@ mod tcr_command_test
 {
     use std::cell::{Ref, RefCell};
     use std::rc::Rc;
+    use std::process::{Output, ExitStatus};
+    use std::os::unix::process::ExitStatusExt;
     use crate::config::Config;
     use crate::tcr::{tcr};
 
-    fn setup_mock() -> (Rc<RefCell<Vec<(String, Vec<String>)>>>, impl Fn(&str, &[&str])) {
+    fn dummy_output() -> Output {
+        Output {
+            status: ExitStatus::from_raw(0),
+            stdout: vec![],
+            stderr: vec![],
+        }
+    }
+
+    fn setup_mock() -> (Rc<RefCell<Vec<(String, Vec<String>)>>>, impl Fn(&str, &[&str]) -> Result<Output, std::io::Error>) {
         let captured_calls = Rc::new(RefCell::new(Vec::new()));
         let mock_exec = {
-            let captured_calls = Rc::clone(&captured_calls); // Usa Rc::clone per evitare il move
+            let captured_calls = Rc::clone(&captured_calls);
             move |program: &str, args: &[&str]| {
                 captured_calls.borrow_mut().push((
                     program.to_string(),
                     args.iter().map(|&s| s.to_string()).collect(),
                 ));
+                Ok(dummy_output())
             }
         };
         (captured_calls, mock_exec)
@@ -71,14 +88,34 @@ mod tcr_command_test
         assert!(res.is_ok());
 
         let calls = captured_calls.borrow();
-        assert_eq!(calls.len(), 1);
+        assert_eq!(calls.len(), 3);
         assert_eq!(
             calls[0],
+            (
+                "git".to_string(),
+                vec![
+                    "add".to_string(),
+                    ".".to_string()
+                ]
+            )
+        );
+        assert_eq!(
+            calls[1],
             (
                 "sh".to_string(),
                 vec![
                     "-c".to_string(),
-                    "git add . &&  [ -n \"$(git status --porcelain)\" ] && (test && commit CommitConfig { no_verify: Some(true) } || revert)".to_string()
+                    "test".to_string(),
+                ]
+            )
+        );
+        assert_eq!(
+            calls[2],
+            (
+                "sh".to_string(),
+                vec![
+                    "-c".to_string(),
+                    "(test && commit CommitConfig { no_verify: Some(true) } || revert)".to_string()
                 ]
             )
         );
@@ -102,4 +139,3 @@ mod tcr_command_test
         assert_eq!(calls.len(), 0);
     }
 }
-
