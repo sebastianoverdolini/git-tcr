@@ -2,15 +2,19 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub struct Config
-{
-    pub test: String,
-    #[serde(default)]
-    pub no_verify: Option<bool>
+pub struct TestConfig {
+    pub program: String,
+    pub args: Vec<String>,
 }
 
-pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config>
-{
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct Config {
+    pub test: TestConfig,
+    #[serde(default)]
+    pub no_verify: Option<bool>,
+}
+
+pub fn yaml_config(location: impl Into<PathBuf>) -> Option<Config> {
     let config_path = location.into().join("tcr.yaml");
     let content = std::fs::read_to_string(&config_path).ok()?;
     let config = serde_yaml::from_str(&content).ok()?;
@@ -22,7 +26,7 @@ mod yaml_config_tests {
     use std::fs::{create_dir_all, remove_dir_all, write};
     use std::path::Path;
     use crate::config;
-    use crate::config::Config;
+    use crate::config::{Config, TestConfig};
 
     #[test]
     fn it_returns_the_content_of_the_config_if_the_file_is_present_in_the_current_location() {
@@ -33,7 +37,10 @@ mod yaml_config_tests {
         create_dir_all(test_dir).expect("Failed to create test directory");
 
         let yaml_string = r#"
-        test: npm test
+        test:
+          program: "npm"
+          args:
+            - "test"
         no_verify: true
         "#;
         write(&config_path, yaml_string).expect("Failed to write test config");
@@ -42,7 +49,10 @@ mod yaml_config_tests {
 
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
-            test: String::from("npm test"),
+            test: TestConfig {
+                program: String::from("npm"),
+                args: vec![String::from("test")],
+            },
             no_verify: Some(true)
         });
 
@@ -58,15 +68,20 @@ mod yaml_config_tests {
         create_dir_all(test_dir).expect("Failed to create test directory");
 
         write(&config_path, r#"
-        test: npm test
-        before: []
+        test:
+          program: "npm"
+          args:
+            - "test"
         "#).expect("Failed to write test config");
 
         let result = config::yaml_config(Path::new(test_dir));
 
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
-            test: String::from("npm test"),
+            test: TestConfig {
+                program: String::from("npm"),
+                args: vec![String::from("test")],
+            },
             no_verify: None
         });
 
@@ -82,4 +97,3 @@ mod yaml_config_tests {
         assert!(config::yaml_config(Path::new(test_dir)).is_none());
     }
 }
-

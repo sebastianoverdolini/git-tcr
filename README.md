@@ -12,7 +12,6 @@ You can read his original article [here](https://medium.com/@kentbeck_7670/test-
 
 ## Requirements
 - **Git**
-- **sh**
 
 ## Installation
 ### Cargo
@@ -27,7 +26,9 @@ To configure TCR for your project, follow these steps:
     in the root directory of your project.
 
     ```yaml
-    test: "<your test command>"
+    test:
+        program: <...> # e.g "cargo"
+        args: [...]    # e.g ["test"]
     no_verify: <true|false> # Optional: Set to 'true' to skip verification steps. Default is false.
     ```
 

@@ -22,7 +22,8 @@ impl Repository for GitRepository {
     }
 
     fn test(&self) -> bool {
-        (self.exec)("sh", &["-c", &self.config.clone().test])
+        let args: Vec<&str> = self.config.test.args.iter().map(String::as_str).collect();
+        (self.exec)(&self.config.test.program, &args)
             .map(|output| output.status.success())
             .unwrap_or(false)
     }
@@ -35,7 +36,7 @@ mod git_test
     use std::rc::Rc;
     use std::process::Output;
     use std::os::unix::process::ExitStatusExt;
-    use crate::config::Config;
+    use crate::config::{Config, TestConfig};
     use crate::tcr::Repository;
 
     fn setup_mock() -> (Rc<RefCell<Vec<(String, Vec<String>)>>>, impl Fn(&str, &[&str]) -> Result<Output, std::io::Error>) {
@@ -62,7 +63,7 @@ mod git_test
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: "foo".to_string(), no_verify: Some(true) },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
         };
         git.revert();
         let calls = captured_calls.borrow();
@@ -77,7 +78,7 @@ mod git_test
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: "foo".to_string(), no_verify: Some(true) },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
         };
         git.commit();
         let calls = captured_calls.borrow();
@@ -91,7 +92,7 @@ mod git_test
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: "foo".to_string(), no_verify: Some(false) },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(false) },
         };
         git.commit();
         let calls = captured_calls.borrow();
@@ -105,7 +106,7 @@ mod git_test
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: "foo".to_string(), no_verify: None },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: None },
         };
         git.commit();
         let calls = captured_calls.borrow();
@@ -119,12 +120,12 @@ mod git_test
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: "foo".to_string(), no_verify: None },
+            config: Config { test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
         };
         let result = git.test();
         let calls = captured_calls.borrow();
         assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0], ("sh".to_string(), vec!["-c".to_string(), "foo".to_string()]));
+        assert_eq!(calls[0], ("cargo".to_string(), vec!["test".to_string()]));
         assert_eq!(result, true);
     }
 
@@ -147,12 +148,12 @@ mod git_test
         };
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: "foo".to_string(), no_verify: None },
+            config: Config { test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
         };
         let result = git.test();
         let calls = captured_calls.borrow();
         assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0], ("sh".to_string(), vec!["-c".to_string(), "foo".to_string()]));
+        assert_eq!(calls[0], ("cargo".to_string(), vec!["test".to_string()]));
         assert_eq!(result, false);
     }
 }

@@ -1,1 +1,4 @@
-test: "cargo test"
+test:
+  program: "cargo"
+  args:
+    - "test"
