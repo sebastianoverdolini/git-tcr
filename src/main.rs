@@ -13,7 +13,6 @@ mod message;
 
 fn main()
 {
-    let use_scribe = env::args().any(|arg| arg == "--scribe");
     match yaml_config(current_dir().unwrap()) {
         Some(configuration) => {
             let git = git::GitRepository {
@@ -22,7 +21,7 @@ fn main()
                     cmd
                         .output()
                 }),
-                message: if use_scribe { scribe } else { wip },
+                message: if env::args().any(|arg| arg == "--scribe") { scribe } else { wip },
             };
             tcr(&git)
         },
