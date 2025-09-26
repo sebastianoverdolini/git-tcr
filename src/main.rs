@@ -3,7 +3,7 @@ extern crate core;
 use std::env::{self, current_dir};
 use std::process::Command;
 use crate::config::yaml_config;
-use crate::message::{auto, wip};
+use crate::message::{scribe, wip};
 use crate::tcr::tcr;
 
 mod tcr;
@@ -13,7 +13,7 @@ mod message;
 
 fn main()
 {
-    let use_auto = env::args().any(|arg| arg == "--auto-message");
+    let use_scribe = env::args().any(|arg| arg == "--scribe");
     match yaml_config(current_dir().unwrap()) {
         Some(configuration) => {
             let git = git::GitRepository {
@@ -22,7 +22,7 @@ fn main()
                     cmd
                         .output()
                 }),
-                message: if use_auto { auto } else { wip },
+                message: if use_scribe { scribe } else { wip },
             };
             tcr(&git)
         },

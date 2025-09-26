@@ -14,7 +14,7 @@ mod tests {
     }
 }
 
-pub fn auto(diff: &str) -> String {
+pub fn scribe(diff: &str) -> String {
     let prompt_path = "src/commit.md";
     let prompt = fs::read_to_string(prompt_path).unwrap_or_else(|_| "Generate a Git commit message from the diff below.".to_string());
     let full_prompt = format!("{}\nGit diff:\n{}", prompt, diff);
