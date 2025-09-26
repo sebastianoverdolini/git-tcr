@@ -11,8 +11,7 @@ mod git;
 
 fn main()
 {
-    let config = yaml_config(current_dir().unwrap());
-    match config {
+    match yaml_config(current_dir().unwrap()) {
         Some(configuration) => {
             let git = git::GitRepository {
                 config: configuration.clone(),
