@@ -1,27 +1,28 @@
 extern crate core;
 
-use std::env::current_dir;
+use std::env::{self, current_dir};
 use std::process::Command;
 use crate::config::yaml_config;
+use crate::message::{auto, wip};
 use crate::tcr::tcr;
 
 mod tcr;
 mod config;
 mod git;
+mod message;
 
 fn main()
 {
+    let use_auto = env::args().any(|arg| arg == "--auto-message");
     match yaml_config(current_dir().unwrap()) {
         Some(configuration) => {
             let git = git::GitRepository {
                 config: configuration.clone(),
-                exec: Box::new(|program: &str, args: &[&str]| {
-                    Command::new(program)
-                        .args(args)
-                        .stdout(std::process::Stdio::inherit())
-                        .stderr(std::process::Stdio::inherit())
+                exec: Box::new(|cmd: &mut Command| {
+                    cmd
                         .output()
                 }),
+                message: if use_auto { auto } else { wip },
             };
             tcr(&git)
         },
