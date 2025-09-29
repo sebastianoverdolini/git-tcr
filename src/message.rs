@@ -20,7 +20,7 @@ pub fn scribe(diff: &str) -> String {
     let full_prompt = format!("{}\nGit diff:\n{}", prompt, diff);
     let output = Command::new("ollama")
         .arg("run")
-        .arg("tavernari/git-commit-message:latest")
+        .arg("qwen2.5-coder:3b")
         .arg(full_prompt)
         .output();
     match output {
