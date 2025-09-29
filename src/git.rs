@@ -9,6 +9,11 @@ pub struct GitRepository {
 }
 
 impl Repository for GitRepository {
+    fn stage(&self) {
+        (self.exec)(&mut Command::new("git").args(["add", "."]))
+            .expect("git add . works");
+    }
+
     fn revert(&self) {
         (self.exec)(&mut Command::new("git").args(["clean", "-fdq", "."]))
             .expect("clean command works");
@@ -17,8 +22,6 @@ impl Repository for GitRepository {
     }
 
     fn commit(&self) {
-        (self.exec)(&mut Command::new("git").args(["add", "."]))
-            .expect("git add . works");
         let diff_output = (self.exec)(&mut Command::new("git").args(["diff", "--staged", "--color=never"]))
             .expect("git diff works");
         let diff_str = String::from_utf8_lossy(&diff_output.stdout);
@@ -85,6 +88,20 @@ mod git_test {
     }
 
     #[test]
+    fn stage_test() {
+        let (captured_calls, mock_exec) = setup_mock();
+        let git = super::GitRepository {
+            exec: Box::new(mock_exec),
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
+            message: |_diff| "WIP".to_string(),
+        };
+        git.stage();
+        let calls = captured_calls.borrow();
+        assert_eq!(calls.len(), 1);
+        assert_eq!(calls[0], ("git".to_string(), vec!["add".to_string(), ".".to_string()]));
+    }
+
+    #[test]
     fn revert_test() {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
@@ -109,10 +126,9 @@ mod git_test {
         };
         git.commit();
         let calls = captured_calls.borrow();
-        assert_eq!(calls.len(), 3);
-        assert_eq!(calls[0], ("git".to_string(), vec!["add".to_string(), ".".to_string()]));
-        assert_eq!(calls[1], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
-        assert_eq!(calls[2], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string(), "--no-verify".to_string()]));
+        assert_eq!(calls.len(), 2);
+        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
+        assert_eq!(calls[1], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string(), "--no-verify".to_string()]));
     }
 
     #[test]
@@ -125,10 +141,9 @@ mod git_test {
         };
         git.commit();
         let calls = captured_calls.borrow();
-        assert_eq!(calls.len(), 3);
-        assert_eq!(calls[0], ("git".to_string(), vec!["add".to_string(), ".".to_string()]));
-        assert_eq!(calls[1], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
-        assert_eq!(calls[2], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string()]));
+        assert_eq!(calls.len(), 2);
+        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
+        assert_eq!(calls[1], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string()]));
     }
 
     #[test]
@@ -141,10 +156,9 @@ mod git_test {
         };
         git.commit();
         let calls = captured_calls.borrow();
-        assert_eq!(calls.len(), 3);
-        assert_eq!(calls[0], ("git".to_string(), vec!["add".to_string(), ".".to_string()]));
-        assert_eq!(calls[1], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
-        assert_eq!(calls[2], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string()]));
+        assert_eq!(calls.len(), 2);
+        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
+        assert_eq!(calls[1], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string()]));
     }
 
     #[test]

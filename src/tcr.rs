@@ -1,4 +1,5 @@
 pub fn tcr(repository: &dyn Repository) {
+    repository.stage();
     match repository.test() {
         true => repository.commit(),
         false => repository.revert(),
@@ -6,6 +7,7 @@ pub fn tcr(repository: &dyn Repository) {
 }
 
 pub trait Repository {
+    fn stage(&self);
     fn revert(&self);
     fn commit(&self);
     fn test(&self) -> bool;
@@ -23,6 +25,9 @@ mod tcr_test {
     }
 
     impl Repository for FakeRepository {
+        fn stage(&self) {
+            self.log.borrow_mut().push("stage".to_string());
+        }
         fn revert(&self) {
             self.log.borrow_mut().push("revert".to_string());
         }
@@ -36,16 +41,16 @@ mod tcr_test {
     }
 
     #[test]
-    fn green_scenario_test_and_commit() {
+    fn green_scenario_stage_test_and_commit() {
         let repository = FakeRepository { log: RefCell::new(vec![]), test_result: true };
         tcr(&repository);
-        assert_eq!(repository.log.borrow().as_slice(), &["test", "commit"]);
+        assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "commit"]);
     }
 
     #[test]
-    fn red_scenario_test_and_revert() {
+    fn red_scenario_stage_test_and_revert() {
         let repository = FakeRepository { log: RefCell::new(vec![]), test_result: false };
         tcr(&repository);
-        assert_eq!(repository.log.borrow().as_slice(), &["test", "revert"]);
+        assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "revert"]);
     }
 }
