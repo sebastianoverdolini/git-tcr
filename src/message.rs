@@ -46,11 +46,13 @@ Generate **a single concise commit message** based on the diff provided below."#
 
 pub fn scribe(diff: &str) -> String {
     let full_prompt = format!("{PROMPT}\nGit diff:\n{diff}");
+
     let output = Command::new("ollama")
         .arg("run")
         .arg("qwen2.5-coder:3b")
         .arg(full_prompt)
         .output();
+
     match output {
         Ok(output) if output.status.success() => {
             let msg = String::from_utf8_lossy(&output.stdout).trim().to_string();

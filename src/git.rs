@@ -22,7 +22,7 @@ impl Repository for GitRepository {
     }
 
     fn commit(&self) {
-        let diff_output = (self.exec)(&mut Command::new("git").args(["diff", "--staged", "--color=never"]))
+        let diff_output = (self.exec)(&mut Command::new("git").args(["diff", "--staged", "--color=never", "-U0"]))
             .expect("git diff works");
         let diff_str = String::from_utf8_lossy(&diff_output.stdout);
         let commit_message = (self.message)(&diff_str);
@@ -69,7 +69,7 @@ mod git_test {
                 let (program, args) = extract_cmd(cmd);
                 captured_calls.borrow_mut().push((program.clone(), args.clone()));
                 // Return fake diff for git diff
-                if program == "git" && args == ["diff", "--staged", "--color=never"] {
+                if program == "git" && args == ["diff", "--staged", "--color=never", "-U0"] {
                     Ok(Output {
                         status: std::process::ExitStatus::from_raw(0),
                         stdout: b"fake-diff".to_vec(),
@@ -127,7 +127,7 @@ mod git_test {
         git.commit();
         let calls = captured_calls.borrow();
         assert_eq!(calls.len(), 2);
-        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
+        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string(), "-U0".to_string()]));
         assert_eq!(calls[1], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string(), "--no-verify".to_string()]));
     }
 
@@ -142,7 +142,7 @@ mod git_test {
         git.commit();
         let calls = captured_calls.borrow();
         assert_eq!(calls.len(), 2);
-        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
+        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string(), "-U0".to_string()]));
         assert_eq!(calls[1], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string()]));
     }
 
@@ -157,7 +157,7 @@ mod git_test {
         git.commit();
         let calls = captured_calls.borrow();
         assert_eq!(calls.len(), 2);
-        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string()]));
+        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string(), "-U0".to_string()]));
         assert_eq!(calls[1], ("git".to_string(), vec!["commit".to_string(), "-m".to_string(), "WIP: fake-diff".to_string()]));
     }
 
