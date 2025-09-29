@@ -13,7 +13,8 @@ mod tests {
     }
 }
 
-const PROMPT: &str = r#"You are an intelligent assistant specialized in generating Git commit messages.
+const PROMPT: &str = r#"
+You are an intelligent assistant specialized in generating Git commit messages.
 You will receive a code diff as input.
 
 Your commit messages must be:
