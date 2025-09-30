@@ -1,4 +1,4 @@
 test:
-  - program: "cargo"
-    args:
-     - "test"
+  program: "cargo"
+  args:
+    - "test"

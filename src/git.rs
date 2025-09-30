@@ -35,16 +35,14 @@ impl Repository for GitRepository {
     }
 
     fn test(&self) -> bool {
-        self.config.test.iter().all(|test_cmd| {
-            let mut cmd = Command::new(&test_cmd.program);
-            for arg in &test_cmd.args {
-                cmd.arg(arg);
-            }
-            (self.exec)(&mut cmd.stdout(std::process::Stdio::inherit())
-                .stderr(std::process::Stdio::inherit()))
-                .map(|output| output.status.success())
-                .unwrap_or(false)
-        })
+        let mut cmd = Command::new(&self.config.test.program);
+        for arg in &self.config.test.args {
+            cmd.arg(arg);
+        }
+        (self.exec)(&mut cmd.stdout(std::process::Stdio::inherit())
+            .stderr(std::process::Stdio::inherit()))
+            .map(|output| output.status.success())
+            .unwrap_or(false)
     }
 }
 
@@ -94,7 +92,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: vec![TestConfig { program: "foo".to_string(), args: vec![] }], no_verify: Some(true) },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: |_diff| "WIP".to_string(),
         };
         git.stage();
@@ -108,7 +106,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: vec![TestConfig { program: "foo".to_string(), args: vec![] }], no_verify: Some(true) },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: |_diff| "WIP".to_string(),
         };
         git.revert();
@@ -123,7 +121,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: vec![TestConfig { program: "foo".to_string(), args: vec![] }], no_verify: Some(true) },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: |diff| format!("WIP: {diff}"),
         };
         git.commit();
@@ -138,7 +136,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: vec![TestConfig { program: "foo".to_string(), args: vec![] }], no_verify: Some(false) },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(false) },
             message: |diff| format!("WIP: {diff}"),
         };
         git.commit();
@@ -153,7 +151,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: vec![TestConfig { program: "foo".to_string(), args: vec![] }], no_verify: None },
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: None },
             message: |diff| format!("WIP: {diff}"),
         };
         git.commit();
@@ -168,7 +166,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: vec![TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }], no_verify: None },
+            config: Config { test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
             message: |_diff| "WIP".to_string(),
         };
         let result = git.test();
@@ -195,7 +193,7 @@ mod git_test {
         };
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: vec![TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }], no_verify: None },
+            config: Config { test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
             message: |_diff| "WIP".to_string(),
         };
         let result = git.test();

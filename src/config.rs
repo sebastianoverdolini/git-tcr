@@ -9,7 +9,7 @@ pub struct TestConfig {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config {
-    pub test: Vec<TestConfig>,
+    pub test: TestConfig,
     #[serde(default)]
     pub no_verify: Option<bool>,
 }
@@ -38,12 +38,9 @@ mod yaml_config_tests {
 
         let yaml_string = r#"
         test:
-          - program: "npm"
-            args:
-              - "test"
-          - program: "echo"
-            args:
-              - "Hello, World!"
+          program: "npm"
+          args:
+            - "test"
         no_verify: true
         "#;
         write(&config_path, yaml_string).expect("Failed to write test config");
@@ -52,16 +49,10 @@ mod yaml_config_tests {
 
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
-            test: vec![
-                TestConfig {
-                    program: String::from("npm"),
-                    args: vec![String::from("test")],
-                },
-                TestConfig {
-                    program: String::from("echo"),
-                    args: vec![String::from("Hello, World!")],
-                },
-            ],
+            test: TestConfig {
+                program: String::from("npm"),
+                args: vec![String::from("test")],
+            },
             no_verify: Some(true)
         });
 
@@ -78,28 +69,19 @@ mod yaml_config_tests {
 
         write(&config_path, r#"
         test:
-          - program: "npm"
-            args:
-              - "test"
-          - program: "echo"
-            args:
-              - "Hello, World!"
+          program: "npm"
+          args:
+            - "test"
         "#).expect("Failed to write test config");
 
         let result = config::yaml_config(Path::new(test_dir));
 
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
-            test: vec![
-                TestConfig {
-                    program: String::from("npm"),
-                    args: vec![String::from("test")],
-                },
-                TestConfig {
-                    program: String::from("echo"),
-                    args: vec![String::from("Hello, World!")],
-                },
-            ],
+            test: TestConfig {
+                program: String::from("npm"),
+                args: vec![String::from("test")],
+            },
             no_verify: None
         });
 
