@@ -41,14 +41,14 @@ mod tcr_test {
     }
 
     #[test]
-    fn green_scenario_stage_test_and_commit() {
+    fn green_test_and_commit() {
         let repository = FakeRepository { log: RefCell::new(vec![]), test_result: true };
         tcr(&repository);
         assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "commit"]);
     }
 
     #[test]
-    fn red_scenario_stage_test_and_revert() {
+    fn red_test_and_revert() {
         let repository = FakeRepository { log: RefCell::new(vec![]), test_result: false };
         tcr(&repository);
         assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "revert"]);
