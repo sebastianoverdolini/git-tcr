@@ -17,6 +17,8 @@ mod message;
 struct Cli {
     #[arg(long)]
     scribe: bool,
+    #[arg(long, value_name = "TRAILER", num_args = 0.., action = clap::ArgAction::Append)]
+    trailer: Vec<String>,
 }
 
 fn main()
@@ -30,6 +32,7 @@ fn main()
                     cmd.output()
                 }),
                 message: if cli.scribe { scribe } else { wip },
+                trailers: cli.trailer.clone(),
             };
             tcr(&git)
         },

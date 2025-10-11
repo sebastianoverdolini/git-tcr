@@ -6,6 +6,7 @@ pub struct GitRepository {
     pub config: Config,
     pub exec: Box<dyn Fn(&mut Command) -> Result<Output, std::io::Error> + 'static>,
     pub message: fn(&str) -> String,
+    pub trailers: Vec<String>,
 }
 
 impl Repository for GitRepository {
@@ -28,6 +29,9 @@ impl Repository for GitRepository {
         let commit_message = (self.message)(&diff_str);
         let mut cmd = Command::new("git");
         cmd.arg("commit").arg("-m").arg(&commit_message);
+        for trailer in &self.trailers {
+            cmd.arg("--trailer").arg(trailer);
+        }
         if self.config.clone().no_verify.unwrap_or(false) {
             cmd.arg("--no-verify");
         }
@@ -94,6 +98,7 @@ mod git_test {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: |_diff| "WIP".to_string(),
+            trailers: vec![],
         };
         git.stage();
         let calls = captured_calls.borrow();
@@ -108,6 +113,7 @@ mod git_test {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: |_diff| "WIP".to_string(),
+            trailers: vec![],
         };
         git.revert();
         let calls = captured_calls.borrow();
@@ -123,6 +129,7 @@ mod git_test {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: |diff| format!("WIP: {diff}"),
+            trailers: vec![],
         };
         git.commit();
         let calls = captured_calls.borrow();
@@ -138,6 +145,7 @@ mod git_test {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(false) },
             message: |diff| format!("WIP: {diff}"),
+            trailers: vec![],
         };
         git.commit();
         let calls = captured_calls.borrow();
@@ -153,6 +161,7 @@ mod git_test {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: None },
             message: |diff| format!("WIP: {diff}"),
+            trailers: vec![],
         };
         git.commit();
         let calls = captured_calls.borrow();
@@ -162,12 +171,37 @@ mod git_test {
     }
 
     #[test]
+    fn commit_with_trailers() {
+        let (captured_calls, mock_exec) = setup_mock();
+        let git = super::GitRepository {
+            exec: Box::new(mock_exec),
+            config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: None },
+            message: |diff| format!("WIP: {diff}"),
+            trailers: vec!["Issue: GDT-1234".to_string(), "Reviewed-by: Gennaro".to_string()],
+        };
+        git.commit();
+        let calls = captured_calls.borrow();
+        assert_eq!(calls.len(), 2);
+        assert_eq!(calls[0], ("git".to_string(), vec!["diff".to_string(), "--staged".to_string(), "--color=never".to_string(), "-U0".to_string()]));
+        assert_eq!(calls[1], ("git".to_string(), vec![
+            "commit".to_string(),
+            "-m".to_string(),
+            "WIP: fake-diff".to_string(),
+            "--trailer".to_string(),
+            "Issue: GDT-1234".to_string(),
+            "--trailer".to_string(),
+            "Reviewed-by: Gennaro".to_string()
+        ]));
+    }
+
+    #[test]
     fn test_success() {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
             message: |_diff| "WIP".to_string(),
+            trailers: vec![],
         };
         let result = git.test();
         let calls = captured_calls.borrow();
@@ -195,6 +229,7 @@ mod git_test {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
             message: |_diff| "WIP".to_string(),
+            trailers: vec![],
         };
         let result = git.test();
         let calls = captured_calls.borrow();

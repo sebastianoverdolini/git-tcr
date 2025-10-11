@@ -22,6 +22,7 @@ mod tcr_test {
     struct FakeRepository {
         pub log: RefCell<Vec<String>>,
         pub test_result: bool,
+        pub trailers: Vec<String>,
     }
 
     impl Repository for FakeRepository {
@@ -32,7 +33,12 @@ mod tcr_test {
             self.log.borrow_mut().push("revert".to_string());
         }
         fn commit(&self) {
-            self.log.borrow_mut().push("commit".to_string());
+            let mut msg = "commit".to_string();
+            for t in &self.trailers {
+                msg.push_str("\n");
+                msg.push_str(t);
+            }
+            self.log.borrow_mut().push(msg);
         }
         fn test(&self) -> bool {
             self.log.borrow_mut().push("test".to_string());
@@ -42,14 +48,14 @@ mod tcr_test {
 
     #[test]
     fn green_test_and_commit() {
-        let repository = FakeRepository { log: RefCell::new(vec![]), test_result: true };
+        let repository = FakeRepository { log: RefCell::new(vec![]), test_result: true, trailers: vec!["Issue: GDT-1234".to_string(), "Reviewed-by: Gennaro".to_string()] };
         tcr(&repository);
-        assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "commit"]);
+        assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "commit\nIssue: GDT-1234\nReviewed-by: Gennaro"]);
     }
 
     #[test]
     fn red_test_and_revert() {
-        let repository = FakeRepository { log: RefCell::new(vec![]), test_result: false };
+        let repository = FakeRepository { log: RefCell::new(vec![]), test_result: false, trailers: vec![] };
         tcr(&repository);
         assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "revert"]);
     }
