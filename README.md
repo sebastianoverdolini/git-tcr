@@ -37,15 +37,15 @@ To configure TCR for your project, follow these steps:
 git tcr
 ```
 
-### Auto Commit Message
-You can use the `--auto-message` flag to automatically generate commit messages based on your staged changes.
+### Scribe
+You can use the `--scribe` flag to automatically generate commit messages based on your staged changes.
 This feature requires [Ollama](https://ollama.com/) running locally and `qwen2.5-coder:3b`.
 
 Example:
 ```
-git tcr --auto-message
+git tcr --scribe
 ```
-If `--auto-message` is not provided, the default commit message is `WIP`.
+If `--scribe` is not provided, the default commit message is `WIP`.
 
 ## Conclusion
 By adopting TCR in your software development workflow, you can streamline your 
