@@ -13,7 +13,13 @@ You can read his original article [here](https://medium.com/@kentbeck_7670/test-
 ## Requirements
 - **Git**
 
-## Installation
+## Installation (Latest)
+### Apple Silicon
+```
+curl -L https://github.com/sebastianoverdolini/git-tcr/releases/latest/download/git-tcr-aarch64-apple-darwin > git-tcr && \
+    chmod +x git-tcr && \
+    sudo mv git-tcr /usr/local/bin/git-tcr
+```
 ### Cargo
 ```
 cargo install --git https://github.com/sebastianoverdolini/git-tcr
