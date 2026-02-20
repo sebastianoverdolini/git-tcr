@@ -1,8 +1,8 @@
-pub fn tcr(repository: &dyn Repository) {
+pub fn tcr(repository: &dyn Repository) -> bool {
     repository.stage();
     match repository.test() {
-        true => repository.commit(),
-        false => repository.revert(),
+        true => { repository.commit(); true }
+        false => { repository.revert(); false }
     }
 }
 
@@ -49,14 +49,16 @@ mod tcr_test {
     #[test]
     fn green_test_and_commit() {
         let repository = FakeRepository { log: RefCell::new(vec![]), test_result: true, trailers: vec!["Issue: GDT-1234".to_string(), "Reviewed-by: Gennaro".to_string()] };
-        tcr(&repository);
+        let result = tcr(&repository);
+        assert!(result);
         assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "commit\nIssue: GDT-1234\nReviewed-by: Gennaro"]);
     }
 
     #[test]
     fn red_test_and_revert() {
         let repository = FakeRepository { log: RefCell::new(vec![]), test_result: false, trailers: vec![] };
-        tcr(&repository);
+        let result = tcr(&repository);
+        assert!(!result);
         assert_eq!(repository.log.borrow().as_slice(), &["stage", "test", "revert"]);
     }
 }

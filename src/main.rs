@@ -1,7 +1,7 @@
 extern crate core;
 
-use std::env::{current_dir};
-use std::process::Command;
+use std::env::current_dir;
+use std::process::{Command, ExitCode};
 use crate::config::yaml_config;
 use crate::message::{scribe, wip};
 use crate::tcr::tcr;
@@ -21,7 +21,7 @@ struct Cli {
     trailer: Vec<String>,
 }
 
-fn main()
+fn main() -> ExitCode
 {
     let cli = Cli::parse();
     match yaml_config(current_dir().unwrap()) {
@@ -34,8 +34,18 @@ fn main()
                 message: if cli.scribe { scribe } else { wip },
                 trailers: cli.trailer.clone(),
             };
-            tcr(&git)
+            if tcr(&git) {
+                ExitCode::SUCCESS
+            }
+            else {
+                ExitCode::FAILURE
+            }
         },
-        None => eprintln!("Configuration not found.")
+        None => {
+            eprintln!("\
+            Error: 'tcr.yaml' not found in the current directory. \
+            Please create the configuration file to proceed.");
+            ExitCode::FAILURE
+        }
     }
 }
