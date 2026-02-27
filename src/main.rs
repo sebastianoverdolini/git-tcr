@@ -3,7 +3,7 @@ extern crate core;
 use std::env::current_dir;
 use std::process::{Command, ExitCode};
 use crate::config::yaml_config;
-use crate::message::{scribe, wip};
+use crate::message::wip;
 use crate::tcr::tcr;
 use clap::Parser;
 
@@ -15,8 +15,6 @@ mod message;
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    #[arg(long)]
-    scribe: bool,
     #[arg(long, value_name = "TRAILER", num_args = 0.., action = clap::ArgAction::Append)]
     trailer: Vec<String>,
 }
@@ -31,7 +29,7 @@ fn main() -> ExitCode
                 exec: Box::new(|cmd: &mut Command| {
                     cmd.output()
                 }),
-                message: if cli.scribe { scribe } else { wip },
+                message: wip,
                 trailers: cli.trailer.clone(),
             };
             if tcr(&git) {
