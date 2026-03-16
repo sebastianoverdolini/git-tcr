@@ -5,7 +5,7 @@ use crate::tcr::Repository;
 pub struct GitRepository {
     pub config: Config,
     pub exec: Box<dyn Fn(&mut Command) -> Result<Output, std::io::Error> + 'static>,
-    pub message: fn(&str) -> String,
+    pub message: Box<dyn Fn(&str) -> String>,
     pub trailers: Vec<String>,
 }
 
@@ -97,7 +97,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
-            message: |_diff| "WIP".to_string(),
+            message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
         git.stage();
@@ -112,7 +112,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
-            message: |_diff| "WIP".to_string(),
+            message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
         git.revert();
@@ -128,7 +128,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
-            message: |diff| format!("WIP: {diff}"),
+            message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
         git.commit();
@@ -144,7 +144,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(false) },
-            message: |diff| format!("WIP: {diff}"),
+            message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
         git.commit();
@@ -160,7 +160,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: None },
-            message: |diff| format!("WIP: {diff}"),
+            message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
         git.commit();
@@ -176,7 +176,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: None },
-            message: |diff| format!("WIP: {diff}"),
+            message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec!["Issue: GDT-1234".to_string(), "Reviewed-by: Gennaro".to_string()],
         };
         git.commit();
@@ -200,7 +200,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
-            message: |_diff| "WIP".to_string(),
+            message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
         let result = git.test();
@@ -228,7 +228,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config { test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
-            message: |_diff| "WIP".to_string(),
+            message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
         let result = git.test();

@@ -17,6 +17,8 @@ mod message;
 struct Cli {
     #[arg(long, value_name = "TRAILER", num_args = 0.., action = clap::ArgAction::Append)]
     trailer: Vec<String>,
+    #[arg(short = 'm', long = "message", value_name = "MESSAGE", help = "Custom commit message (overrides WIP)")]
+    message: Option<String>,
 }
 
 fn main() -> ExitCode
@@ -24,12 +26,16 @@ fn main() -> ExitCode
     let cli = Cli::parse();
     match yaml_config(current_dir().unwrap()) {
         Some(configuration) => {
+            let message_fn: Box<dyn Fn(&str) -> String> = match cli.message {
+                Some(msg) => Box::new(move |_diff: &str| msg.clone()),
+                None => Box::new(wip),
+            };
             let git = git::GitRepository {
                 config: configuration.clone(),
                 exec: Box::new(|cmd: &mut Command| {
                     cmd.output()
                 }),
-                message: wip,
+                message: message_fn,
                 trailers: cli.trailer.clone(),
             };
             if tcr(&git) {

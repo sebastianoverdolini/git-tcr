@@ -41,7 +41,31 @@ To configure TCR for your project, follow these steps:
 
 ## Usage
 ```
+git tcr [OPTIONS]
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `-m, --message <MESSAGE>` | Use a custom commit message instead of the default `WIP`. |
+| `--trailer <TRAILER>` | Append a git trailer to the commit message (e.g. `Issue: GDT-42`). Can be repeated multiple times. |
+
+### Examples
+
+Run TCR with the default `WIP` commit message:
+```
 git tcr
+```
+
+Run TCR with a custom commit message:
+```
+git tcr -m "feat: add login page"
+```
+
+Run TCR with a custom message and one or more trailers:
+```
+git tcr -m "feat: add login page" --trailer "Issue: GDT-42" --trailer "Reviewed-by: Alice"
 ```
 
 
