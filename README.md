@@ -39,6 +39,17 @@ To configure TCR for your project, follow these steps:
     no_verify: <true|false> # Optional: Set to 'true' to skip verification steps. Default is false.
     ```
 
+    To run multiple test commands, declare `test` as a list instead. 
+    Commands run in order and stop at the first failure:
+
+    ```yaml
+    test:
+        - program: "tsc"
+          args: ["--noEmit"]
+        - program: "npm"
+          args: ["run", "test"]
+    ```
+
 ## Usage
 ```
 git tcr [OPTIONS]

@@ -8,8 +8,24 @@ pub struct TestConfig {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum TestSpec {
+    Single(TestConfig),
+    Multiple(Vec<TestConfig>),
+}
+
+impl TestSpec {
+    pub fn as_vec(&self) -> Vec<TestConfig> {
+        match self {
+            TestSpec::Single(test) => vec![test.clone()],
+            TestSpec::Multiple(tests) => tests.clone(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config {
-    pub test: TestConfig,
+    pub test: TestSpec,
     #[serde(default)]
     pub no_verify: Option<bool>,
 }
@@ -26,7 +42,7 @@ mod yaml_config_tests {
     use std::fs::{create_dir_all, remove_dir_all, write};
     use std::path::Path;
     use crate::config;
-    use crate::config::{Config, TestConfig};
+    use crate::config::{Config, TestConfig, TestSpec};
 
     #[test]
     fn it_returns_the_content_of_the_config_if_the_file_is_present_in_the_current_location() {
@@ -49,11 +65,45 @@ mod yaml_config_tests {
 
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
-            test: TestConfig {
+            test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
-            },
+            }),
             no_verify: Some(true)
+        });
+
+        remove_dir_all(test_dir).expect("Failed to remove test directory");
+    }
+
+    #[test]
+    fn it_returns_a_list_of_test_commands_when_the_config_declares_multiple() {
+        let test_dir = "test-env-multiple-tests";
+        let config_path = format!("{}/tcr.yaml", test_dir);
+
+        let _ = remove_dir_all(test_dir);
+        create_dir_all(test_dir).expect("Failed to create test directory");
+
+        let yaml_string = r#"
+        test:
+          - program: "tsc"
+            args:
+              - "--noEmit"
+          - program: "npm"
+            args:
+              - "run"
+              - "test"
+        "#;
+        write(&config_path, yaml_string).expect("Failed to write test config");
+
+        let result = config::yaml_config(Path::new(test_dir));
+
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), Config {
+            test: TestSpec::Multiple(vec![
+                TestConfig { program: String::from("tsc"), args: vec![String::from("--noEmit")] },
+                TestConfig { program: String::from("npm"), args: vec![String::from("run"), String::from("test")] },
+            ]),
+            no_verify: None
         });
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
@@ -78,10 +128,10 @@ mod yaml_config_tests {
 
         assert!(result.is_some());
         assert_eq!(result.unwrap(), Config {
-            test: TestConfig {
+            test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
-            },
+            }),
             no_verify: None
         });
 
