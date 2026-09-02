@@ -7,3 +7,6 @@ version = "0.7.0"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_yaml = "0.9.32"
 clap = { version = "4.5.4", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"
