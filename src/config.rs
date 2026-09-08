@@ -66,8 +66,8 @@ impl std::fmt::Display for ConfigError {
             This may mean the config uses a feature this version of git-tcr doesn't support yet \
             \u{2014} check that git-tcr is up to date."),
             ConfigError::UnsupportedVersion { found, max_supported } => write!(f, "\
-            'tcr.yaml' declares version {found}, but this build of git-tcr only understands up to \
-            version {max_supported}. Please upgrade git-tcr."),
+            'tcr.yaml' declares version {found}, but this build of git-tcr ({}) only understands up to \
+            version {max_supported}. Please upgrade git-tcr.", env!("CARGO_PKG_VERSION")),
         }
     }
 }
@@ -246,6 +246,15 @@ mod yaml_config_tests {
         }));
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
+    }
+
+    #[test]
+    fn unsupported_version_message_names_both_the_found_and_the_installed_git_tcr_version() {
+        let message = ConfigError::UnsupportedVersion { found: 99, max_supported: 1 }.to_string();
+
+        assert!(message.contains("99"), "should name the version found in the file: {message}");
+        assert!(message.contains("1"), "should name the max version supported: {message}");
+        assert!(message.contains(env!("CARGO_PKG_VERSION")), "should name the installed git-tcr version: {message}");
     }
 
     #[test]

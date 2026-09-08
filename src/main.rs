@@ -6,7 +6,7 @@ use std::process::{Command, ExitCode};
 use crate::config::yaml_config;
 use crate::message::wip;
 use crate::tcr::tcr;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 
 mod tcr;
 mod config;
@@ -15,7 +15,7 @@ mod init;
 mod message;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(author, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -33,7 +33,19 @@ enum Commands {
 
 fn main() -> ExitCode
 {
-    let cli = Cli::parse();
+    // -V/--version stays the bare crate version (some tooling parses it);
+    // --version's long form additionally names the supported tcr.yaml
+    // schema version, so `git tcr --version` alone tells you both.
+    let long_version = format!(
+        "{} (tcr.yaml schema version {})",
+        env!("CARGO_PKG_VERSION"),
+        config::MAX_SUPPORTED_VERSION,
+    );
+    let matches = Cli::command()
+        .version(env!("CARGO_PKG_VERSION"))
+        .long_version(long_version.leak() as &str)
+        .get_matches();
+    let cli = Cli::from_arg_matches(&matches).unwrap_or_else(|err| err.exit());
     match cli.command {
         Some(Commands::Init) => {
             let stdin = io::stdin();
