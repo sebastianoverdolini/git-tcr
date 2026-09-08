@@ -24,7 +24,7 @@ pub fn init(
     let config_path = dir.join("tcr.yaml");
 
     if config_path.exists() {
-        write!(output, "'tcr.yaml' already exists. Overwrite? [y/N] ")?;
+        write!(output, "tcr.yaml already exists. Overwrite? [y/N] ")?;
         output.flush()?;
         if !read_answer(input, false)? {
             writeln!(output, "Aborted.")?;
@@ -35,9 +35,9 @@ pub fn init(
     let mut tests = Vec::new();
     loop {
         if tests.is_empty() {
-            write!(output, "Test command to run (e.g. \"npm test\"): ")?;
+            write!(output, "Test command: ")?;
         } else {
-            write!(output, "Another test command? (leave empty to finish): ")?;
+            write!(output, "Another test command (blank to finish): ")?;
         }
         output.flush()?;
 
@@ -45,7 +45,7 @@ pub fn init(
         let line = line.trim();
         if line.is_empty() {
             if tests.is_empty() {
-                writeln!(output, "A test command is required.")?;
+                writeln!(output, "E: a test command is required")?;
                 continue;
             }
             break;
@@ -58,14 +58,17 @@ pub fn init(
         };
         let args: Vec<String> = parts.map(String::from).collect();
 
-        writeln!(output, "Running \"{line}\"...")?;
+        write!(output, "Running {line} ... ")?;
+        output.flush()?;
         let mut cmd = Command::new(&program);
         cmd.args(&args);
         let succeeded = run(&mut cmd).map(|status| status.success()).unwrap_or(false);
         if !succeeded {
-            writeln!(output, "\u{2717} \"{line}\" didn't run successfully \u{2014} try again.")?;
+            writeln!(output, "failed")?;
+            writeln!(output, "E: command failed, try again")?;
             continue;
         }
+        writeln!(output, "done")?;
 
         write!(output, "Add this test command? [Y/n] ")?;
         output.flush()?;
@@ -76,7 +79,7 @@ pub fn init(
         tests.push(TestConfig { program, args });
     }
 
-    write!(output, "Skip git hooks with --no-verify on commit? [y/N] ")?;
+    write!(output, "Skip git hooks (--no-verify)? [y/N] ")?;
     output.flush()?;
     let no_verify = read_answer(input, false)?;
 
@@ -229,7 +232,7 @@ mod init_tests {
         create_dir_all(test_dir).expect("Failed to create test directory");
 
         let output = run(Path::new(test_dir), "\n\nnpm test\n\n\nn\n");
-        assert!(output.contains("A test command is required."));
+        assert!(output.contains("E: a test command is required"));
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
@@ -273,7 +276,7 @@ mod init_tests {
             "badcmd\nnpm test\n\n\nn\n",
             &fails_for("badcmd"),
         );
-        assert!(output.contains("didn't run successfully"), "output was: {output}");
+        assert!(output.contains("E: command failed, try again"), "output was: {output}");
         // Only the successful retry ("npm test") should ever reach the
         // confirmation prompt — the failed "badcmd" attempt must not.
         assert_eq!(
