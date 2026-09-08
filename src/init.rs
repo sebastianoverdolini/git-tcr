@@ -96,7 +96,7 @@ pub fn init(
         no_verify: Some(no_verify),
     };
 
-    let yaml = serde_yaml::to_string(&config).expect("config always serializes to yaml");
+    let yaml = indent_sequences(&serde_yaml::to_string(&config).expect("config always serializes to yaml"));
 
     writeln!(output)?;
     writeln!(output, "{}", yaml.trim_end())?;
@@ -138,6 +138,52 @@ fn read_answer(input: &mut dyn BufRead, default: bool) -> io::Result<bool> {
     Ok(answer == "y" || answer == "yes")
 }
 
+/// `serde_yaml` emits every block-sequence item flush with the key that
+/// introduces it (`args:\n- test` rather than `args:\n  - test`), at every
+/// nesting depth — valid YAML, but not how most YAML style guides (and
+/// tools like yamllint or Prettier) format it. This re-indents every such
+/// sequence, and anything nested inside its items, by two extra spaces per
+/// level of sequence nesting it's inside, so the output reads the way
+/// hand-written or auto-formatted YAML normally does.
+fn indent_sequences(yaml: &str) -> String {
+    // Indentation levels (as they appear in `yaml`) at which a block
+    // sequence is currently open: every line at or below the top entry's
+    // level, until a line at that level that isn't one of its items, is
+    // "inside" it and gets +2 spaces for every entry it's inside.
+    let mut open_sequences: Vec<usize> = Vec::new();
+    let mut out = String::with_capacity(yaml.len() + 32);
+
+    for line in yaml.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.is_empty() {
+            out.push('\n');
+            continue;
+        }
+        let indent = line.len() - trimmed.len();
+        let is_item = trimmed == "-" || trimmed.starts_with("- ");
+
+        while let Some(&level) = open_sequences.last() {
+            let still_inside = indent > level || (indent == level && is_item);
+            if still_inside {
+                break;
+            }
+            open_sequences.pop();
+        }
+
+        if is_item && open_sequences.last() != Some(&indent) {
+            // A new sequence starts here; it applies to this line too.
+            open_sequences.push(indent);
+        }
+
+        let extra = 2 * open_sequences.len();
+        out.push_str(&" ".repeat(indent + extra));
+        out.push_str(trimmed);
+        out.push('\n');
+    }
+
+    out
+}
+
 #[cfg(test)]
 mod init_tests {
     use std::fs::{create_dir_all, remove_dir_all, write};
@@ -147,7 +193,7 @@ mod init_tests {
     use std::process::{Command, ExitStatus};
     use crate::config;
     use crate::config::{Config, TestConfig, TestSpec, MAX_SUPPORTED_VERSION};
-    use super::init;
+    use super::{indent_sequences, init};
 
     /// A fake `run` that reports every command as having run successfully,
     /// without actually spawning anything.
@@ -173,6 +219,46 @@ mod init_tests {
         let mut output = Vec::new();
         init(dir, &mut input, &mut output, exec).expect("init succeeds");
         String::from_utf8(output).unwrap()
+    }
+
+    #[test]
+    fn indent_sequences_indents_a_sequence_under_its_key() {
+        let input = "test:\n  program: npm\n  args:\n  - test\n";
+        let expected = "test:\n  program: npm\n  args:\n    - test\n";
+        assert_eq!(indent_sequences(input), expected);
+    }
+
+    #[test]
+    fn indent_sequences_handles_a_sequence_of_maps_with_their_own_nested_sequences() {
+        let input = "\
+test:
+- program: tsc
+  args:
+  - --noEmit
+- program: npm
+  args:
+  - run
+  - test
+no_verify: false
+";
+        let expected = "\
+test:
+  - program: tsc
+    args:
+      - --noEmit
+  - program: npm
+    args:
+      - run
+      - test
+no_verify: false
+";
+        assert_eq!(indent_sequences(input), expected);
+    }
+
+    #[test]
+    fn indent_sequences_leaves_flow_style_sequences_untouched() {
+        let input = "test:\n  program: npm\n  args: []\n";
+        assert_eq!(indent_sequences(input), input);
     }
 
     #[test]
