@@ -51,7 +51,7 @@ fn main() -> ExitCode
             let stdin = io::stdin();
             let mut input = stdin.lock();
             let mut output = io::stdout();
-            match init::init(current_dir().unwrap(), &mut input, &mut output) {
+            match init::init(current_dir().unwrap(), &mut input, &mut output, &|cmd: &mut Command| cmd.status()) {
                 Ok(true) => ExitCode::SUCCESS,
                 Ok(false) => ExitCode::FAILURE,
                 Err(err) => {

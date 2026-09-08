@@ -49,6 +49,11 @@ This asks for the test command(s) to run (e.g. `npm test`) and whether
 commits should skip git hooks with `--no-verify`, then writes `tcr.yaml`
 for you. If a `tcr.yaml` already exists, it asks before overwriting it.
 
+Each test command is actually run before being kept: one that fails to
+run successfully is rejected automatically, and you're asked to type it
+again. One that runs successfully is still shown to you for confirmation,
+in case it ran but wasn't the command you meant.
+
 Alternatively, write the file by hand:
 
 ```yaml
