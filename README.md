@@ -54,6 +54,9 @@ run successfully is rejected automatically, and you're asked to type it
 again. One that runs successfully is still shown to you for confirmation,
 in case it ran but wasn't the command you meant.
 
+Before writing anything, it prints the full config it's about to save
+and asks for a final confirmation.
+
 Alternatively, write the file by hand:
 
 ```yaml

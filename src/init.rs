@@ -97,6 +97,17 @@ pub fn init(
     };
 
     let yaml = serde_yaml::to_string(&config).expect("config always serializes to yaml");
+
+    writeln!(output)?;
+    writeln!(output, "{}", yaml.trim_end())?;
+    writeln!(output)?;
+    write!(output, "Write it to tcr.yaml? [Y/n] ")?;
+    output.flush()?;
+    if !read_answer(input, true)? {
+        writeln!(output, "Aborted.")?;
+        return Ok(false);
+    }
+
     std::fs::write(&config_path, yaml)?;
     writeln!(output, "Wrote {}", config_path.display())?;
 
@@ -170,7 +181,7 @@ mod init_tests {
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        run(Path::new(test_dir), "npm test\n\n\nn\n");
+        run(Path::new(test_dir), "npm test\n\n\nn\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
@@ -191,7 +202,7 @@ mod init_tests {
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        run(Path::new(test_dir), "tsc --noEmit\n\nnpm run test\n\n\nn\n");
+        run(Path::new(test_dir), "tsc --noEmit\n\nnpm run test\n\n\nn\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
@@ -212,7 +223,7 @@ mod init_tests {
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        run(Path::new(test_dir), "npm test\n\n\ny\n");
+        run(Path::new(test_dir), "npm test\n\n\ny\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
@@ -233,7 +244,7 @@ mod init_tests {
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        let output = run(Path::new(test_dir), "\n\nnpm test\n\n\nn\n");
+        let output = run(Path::new(test_dir), "\n\nnpm test\n\n\nn\n\n");
         assert!(output.contains("E: a test command is required"));
 
         let result = config::yaml_config(Path::new(test_dir));
@@ -275,7 +286,7 @@ mod init_tests {
 
         let output = run_with(
             Path::new(test_dir),
-            "badcmd\nnpm test\n\n\nn\n",
+            "badcmd\nnpm test\n\n\nn\n\n",
             &fails_for("badcmd"),
         );
         assert!(output.contains("E: command failed, try again"), "output was: {output}");
@@ -305,7 +316,7 @@ mod init_tests {
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        run(Path::new(test_dir), "npm test\nn\nnpm run test\n\n\nn\n");
+        run(Path::new(test_dir), "npm test\nn\nnpm run test\n\n\nn\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
@@ -316,6 +327,36 @@ mod init_tests {
             }),
             no_verify: Some(false),
         }));
+
+        remove_dir_all(test_dir).expect("Failed to remove test directory");
+    }
+
+    #[test]
+    fn it_shows_a_recap_of_the_config_before_writing() {
+        let test_dir = "test-env-init-recap";
+        let _ = remove_dir_all(test_dir);
+        create_dir_all(test_dir).expect("Failed to create test directory");
+
+        let output = run(Path::new(test_dir), "npm test\n\n\nn\n\n");
+
+        assert!(output.contains("program: npm"), "output was: {output}");
+        assert!(output.contains("Write it to tcr.yaml?"), "output was: {output}");
+
+        remove_dir_all(test_dir).expect("Failed to remove test directory");
+    }
+
+    #[test]
+    fn it_does_not_write_when_the_recap_is_declined() {
+        let test_dir = "test-env-init-recap-declined";
+        let _ = remove_dir_all(test_dir);
+        create_dir_all(test_dir).expect("Failed to create test directory");
+
+        let mut input = Cursor::new(b"npm test\n\n\nn\nn\n".to_vec());
+        let mut output = Vec::new();
+        let wrote = init(Path::new(test_dir), &mut input, &mut output, &succeeds).expect("init succeeds");
+
+        assert_eq!(wrote, false);
+        assert_eq!(config::yaml_config(Path::new(test_dir)), Err(config::ConfigError::NotFound));
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
     }
@@ -354,7 +395,7 @@ mod init_tests {
         write(format!("{}/tcr.yaml", test_dir), "test:\n  program: \"existing\"\n  args: []\n")
             .expect("Failed to write existing config");
 
-        run(Path::new(test_dir), "y\nnpm test\n\n\nn\n");
+        run(Path::new(test_dir), "y\nnpm test\n\n\nn\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
