@@ -23,8 +23,21 @@ impl TestSpec {
     }
 }
 
+/// The highest `version` this build of git-tcr knows how to interpret.
+/// Bump this only when a `tcr.yaml` shape change would otherwise be
+/// misread (silently or not) by older builds.
+pub const MAX_SUPPORTED_VERSION: u32 = 1;
+
+fn default_version() -> u32 {
+    // Configs written before `version` existed are all shape-1: assume that
+    // when the field is absent.
+    1
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config {
+    #[serde(default = "default_version")]
+    pub version: u32,
     pub test: TestSpec,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub no_verify: Option<bool>,
@@ -37,6 +50,8 @@ pub enum ConfigError {
     /// `tcr.yaml` is present but couldn't be parsed (e.g. it uses a shape
     /// this build of git-tcr doesn't understand).
     Invalid(String),
+    /// `tcr.yaml` declares a `version` newer than this build understands.
+    UnsupportedVersion { found: u32, max_supported: u32 },
 }
 
 impl std::fmt::Display for ConfigError {
@@ -50,6 +65,9 @@ impl std::fmt::Display for ConfigError {
             'tcr.yaml' could not be parsed: {reason}. \
             This may mean the config uses a feature this version of git-tcr doesn't support yet \
             \u{2014} check that git-tcr is up to date."),
+            ConfigError::UnsupportedVersion { found, max_supported } => write!(f, "\
+            'tcr.yaml' declares version {found}, but this build of git-tcr only understands up to \
+            version {max_supported}. Please upgrade git-tcr."),
         }
     }
 }
@@ -57,7 +75,11 @@ impl std::fmt::Display for ConfigError {
 pub fn yaml_config(location: impl Into<PathBuf>) -> Result<Config, ConfigError> {
     let config_path = location.into().join("tcr.yaml");
     let content = std::fs::read_to_string(&config_path).map_err(|_| ConfigError::NotFound)?;
-    serde_yaml::from_str(&content).map_err(|err| ConfigError::Invalid(err.to_string()))
+    let config: Config = serde_yaml::from_str(&content).map_err(|err| ConfigError::Invalid(err.to_string()))?;
+    if config.version > MAX_SUPPORTED_VERSION {
+        return Err(ConfigError::UnsupportedVersion { found: config.version, max_supported: MAX_SUPPORTED_VERSION });
+    }
+    Ok(config)
 }
 
 #[cfg(test)]
@@ -87,6 +109,7 @@ mod yaml_config_tests {
         let result = config::yaml_config(Path::new(test_dir));
 
         assert_eq!(result, Ok(Config {
+            version: 1,
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
@@ -120,6 +143,7 @@ mod yaml_config_tests {
         let result = config::yaml_config(Path::new(test_dir));
 
         assert_eq!(result, Ok(Config {
+            version: 1,
             test: TestSpec::Multiple(vec![
                 TestConfig { program: String::from("tsc"), args: vec![String::from("--noEmit")] },
                 TestConfig { program: String::from("npm"), args: vec![String::from("run"), String::from("test")] },
@@ -148,6 +172,7 @@ mod yaml_config_tests {
         let result = config::yaml_config(Path::new(test_dir));
 
         assert_eq!(result, Ok(Config {
+            version: 1,
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
@@ -165,6 +190,62 @@ mod yaml_config_tests {
         let _ = remove_dir_all(test_dir);
 
         assert_eq!(config::yaml_config(Path::new(test_dir)), Err(ConfigError::NotFound));
+    }
+
+    #[test]
+    fn it_accepts_an_explicit_version_at_or_below_max_supported() {
+        let test_dir = "test-env-explicit-version";
+        let config_path = format!("{}/tcr.yaml", test_dir);
+
+        let _ = remove_dir_all(test_dir);
+        create_dir_all(test_dir).expect("Failed to create test directory");
+
+        write(&config_path, r#"
+        version: 1
+        test:
+          program: "npm"
+          args:
+            - "test"
+        "#).expect("Failed to write test config");
+
+        let result = config::yaml_config(Path::new(test_dir));
+
+        assert_eq!(result, Ok(Config {
+            version: 1,
+            test: TestSpec::Single(TestConfig {
+                program: String::from("npm"),
+                args: vec![String::from("test")],
+            }),
+            no_verify: None
+        }));
+
+        remove_dir_all(test_dir).expect("Failed to remove test directory");
+    }
+
+    #[test]
+    fn it_rejects_a_version_newer_than_this_build_supports() {
+        let test_dir = "test-env-unsupported-version";
+        let config_path = format!("{}/tcr.yaml", test_dir);
+
+        let _ = remove_dir_all(test_dir);
+        create_dir_all(test_dir).expect("Failed to create test directory");
+
+        write(&config_path, r#"
+        version: 99
+        test:
+          program: "npm"
+          args:
+            - "test"
+        "#).expect("Failed to write test config");
+
+        let result = config::yaml_config(Path::new(test_dir));
+
+        assert_eq!(result, Err(ConfigError::UnsupportedVersion {
+            found: 99,
+            max_supported: config::MAX_SUPPORTED_VERSION,
+        }));
+
+        remove_dir_all(test_dir).expect("Failed to remove test directory");
     }
 
     #[test]

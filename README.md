@@ -41,11 +41,18 @@ for you. If a `tcr.yaml` already exists, it asks before overwriting it.
 Alternatively, write the file by hand:
 
 ```yaml
+version: 1 # Optional: the tcr.yaml schema version. Defaults to 1 if omitted.
 test:
     program: <...> # e.g "cargo"
     args: [...]    # e.g ["test"]
 no_verify: <true|false> # Optional: Set to 'true' to skip verification steps. Default is false.
 ```
+
+`version` declares which `tcr.yaml` shape the file uses. It only changes
+when the format itself changes in a backward-incompatible way, so most
+releases of `git-tcr` won't require bumping it. If a config declares a
+`version` newer than the installed `git-tcr` understands, it refuses to
+run and asks you to upgrade instead of misreading the file.
 
 To run multiple test commands, declare `test` as a list instead. 
 Commands run in order and stop at the first failure:

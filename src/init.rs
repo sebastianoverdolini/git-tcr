@@ -1,6 +1,6 @@
 use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
-use crate::config::{Config, TestConfig, TestSpec};
+use crate::config::{Config, TestConfig, TestSpec, MAX_SUPPORTED_VERSION};
 
 /// Interactively builds a `tcr.yaml` in `location`, prompting on `output`
 /// and reading answers from `input`.
@@ -58,6 +58,7 @@ pub fn init(location: impl Into<PathBuf>, input: &mut dyn BufRead, output: &mut 
         TestSpec::Multiple(tests)
     };
     let config = Config {
+        version: MAX_SUPPORTED_VERSION,
         test,
         no_verify: if no_verify { Some(true) } else { None },
     };
@@ -87,7 +88,7 @@ mod init_tests {
     use std::io::Cursor;
     use std::path::Path;
     use crate::config;
-    use crate::config::{Config, TestConfig, TestSpec};
+    use crate::config::{Config, TestConfig, TestSpec, MAX_SUPPORTED_VERSION};
     use super::init;
 
     fn run(dir: &Path, answers: &str) -> String {
@@ -107,6 +108,7 @@ mod init_tests {
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
+            version: MAX_SUPPORTED_VERSION,
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
@@ -127,6 +129,7 @@ mod init_tests {
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
+            version: MAX_SUPPORTED_VERSION,
             test: TestSpec::Multiple(vec![
                 TestConfig { program: String::from("tsc"), args: vec![String::from("--noEmit")] },
                 TestConfig { program: String::from("npm"), args: vec![String::from("run"), String::from("test")] },
@@ -147,6 +150,7 @@ mod init_tests {
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
+            version: MAX_SUPPORTED_VERSION,
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
@@ -168,6 +172,7 @@ mod init_tests {
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
+            version: MAX_SUPPORTED_VERSION,
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
@@ -193,6 +198,7 @@ mod init_tests {
         assert_eq!(wrote, false);
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
+            version: MAX_SUPPORTED_VERSION,
             test: TestSpec::Single(TestConfig {
                 program: String::from("existing"),
                 args: vec![],
@@ -215,6 +221,7 @@ mod init_tests {
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
+            version: MAX_SUPPORTED_VERSION,
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],

@@ -98,7 +98,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
+            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
             message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
@@ -113,7 +113,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
+            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
             message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
@@ -129,7 +129,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
+            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
             message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
@@ -145,7 +145,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(false) },
+            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(false) },
             message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
@@ -161,7 +161,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: None },
+            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: None },
             message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
@@ -177,7 +177,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: None },
+            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: None },
             message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec!["Issue: GDT-1234".to_string(), "Reviewed-by: Gennaro".to_string()],
         };
@@ -201,7 +201,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: TestSpec::Single(TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }), no_verify: None },
+            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }), no_verify: None },
             message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
@@ -229,7 +229,7 @@ mod git_test {
         };
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { test: TestSpec::Single(TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }), no_verify: None },
+            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }), no_verify: None },
             message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
@@ -246,6 +246,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config {
+                version: 1,
                 test: TestSpec::Multiple(vec![
                     TestConfig { program: "tsc".to_string(), args: vec!["--noEmit".to_string()] },
                     TestConfig { program: "npm".to_string(), args: vec!["run".to_string(), "test".to_string()] },
@@ -282,6 +283,7 @@ mod git_test {
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
             config: Config {
+                version: 1,
                 test: TestSpec::Multiple(vec![
                     TestConfig { program: "tsc".to_string(), args: vec!["--noEmit".to_string()] },
                     TestConfig { program: "npm".to_string(), args: vec!["run".to_string(), "test".to_string()] },
