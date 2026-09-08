@@ -27,28 +27,36 @@ cargo install --git https://github.com/sebastianoverdolini/git-tcr
 ```
 
 ## Configuration
-To configure TCR for your project, follow these steps:
+To configure TCR for your project, place a `tcr.yaml` configuration file
+in the root directory of your project. You can create it interactively:
 
-1. **Place a `tcr.yaml`** configuration file 
-    in the root directory of your project.
+```
+git tcr init
+```
 
-    ```yaml
-    test:
-        program: <...> # e.g "cargo"
-        args: [...]    # e.g ["test"]
-    no_verify: <true|false> # Optional: Set to 'true' to skip verification steps. Default is false.
-    ```
+This asks for the test command(s) to run (e.g. `npm test`) and whether
+commits should skip git hooks with `--no-verify`, then writes `tcr.yaml`
+for you. If a `tcr.yaml` already exists, it asks before overwriting it.
 
-    To run multiple test commands, declare `test` as a list instead. 
-    Commands run in order and stop at the first failure:
+Alternatively, write the file by hand:
 
-    ```yaml
-    test:
-        - program: "tsc"
-          args: ["--noEmit"]
-        - program: "npm"
-          args: ["run", "test"]
-    ```
+```yaml
+test:
+    program: <...> # e.g "cargo"
+    args: [...]    # e.g ["test"]
+no_verify: <true|false> # Optional: Set to 'true' to skip verification steps. Default is false.
+```
+
+To run multiple test commands, declare `test` as a list instead. 
+Commands run in order and stop at the first failure:
+
+```yaml
+test:
+    - program: "tsc"
+      args: ["--noEmit"]
+    - program: "npm"
+      args: ["run", "test"]
+```
 
 ## Usage
 ```

@@ -26,7 +26,7 @@ impl TestSpec {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Config {
     pub test: TestSpec,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub no_verify: Option<bool>,
 }
 
