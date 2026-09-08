@@ -91,7 +91,9 @@ pub fn init(
     let config = Config {
         version: MAX_SUPPORTED_VERSION,
         test,
-        no_verify: if no_verify { Some(true) } else { None },
+        // Written explicitly either way, like `version`, so the generated
+        // file states its defaults rather than leaving them implicit.
+        no_verify: Some(no_verify),
     };
 
     let yaml = serde_yaml::to_string(&config).expect("config always serializes to yaml");
@@ -177,7 +179,7 @@ mod init_tests {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
             }),
-            no_verify: None,
+            no_verify: Some(false),
         }));
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
@@ -198,7 +200,7 @@ mod init_tests {
                 TestConfig { program: String::from("tsc"), args: vec![String::from("--noEmit")] },
                 TestConfig { program: String::from("npm"), args: vec![String::from("run"), String::from("test")] },
             ]),
-            no_verify: None,
+            no_verify: Some(false),
         }));
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
@@ -241,7 +243,7 @@ mod init_tests {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
             }),
-            no_verify: None,
+            no_verify: Some(false),
         }));
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
@@ -291,7 +293,7 @@ mod init_tests {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
             }),
-            no_verify: None,
+            no_verify: Some(false),
         }));
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
@@ -312,7 +314,7 @@ mod init_tests {
                 program: String::from("npm"),
                 args: vec![String::from("run"), String::from("test")],
             }),
-            no_verify: None,
+            no_verify: Some(false),
         }));
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
@@ -361,7 +363,7 @@ mod init_tests {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
             }),
-            no_verify: None,
+            no_verify: Some(false),
         }));
 
         remove_dir_all(test_dir).expect("Failed to remove test directory");
