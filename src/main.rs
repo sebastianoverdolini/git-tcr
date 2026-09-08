@@ -33,17 +33,15 @@ enum Commands {
 
 fn main() -> ExitCode
 {
-    // -V/--version stays the bare crate version (some tooling parses it);
-    // --version's long form additionally names the supported tcr.yaml
-    // schema version, so `git tcr --version` alone tells you both.
-    let long_version = format!(
+    // -V and --version print the same thing: the crate version plus the
+    // supported tcr.yaml schema version.
+    let version = format!(
         "{} (tcr.yaml schema version {})",
         env!("CARGO_PKG_VERSION"),
         config::MAX_SUPPORTED_VERSION,
     );
     let matches = Cli::command()
-        .version(env!("CARGO_PKG_VERSION"))
-        .long_version(long_version.leak() as &str)
+        .version(version.leak() as &str)
         .get_matches();
     let cli = Cli::from_arg_matches(&matches).unwrap_or_else(|err| err.exit());
     match cli.command {
