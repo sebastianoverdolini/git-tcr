@@ -29,3 +29,11 @@ jobs:
           file: target/release/${{ matrix.artifact_name }}
           asset_name: ${{ github.event.repository.name }}-${{steps.asset_name.outputs.HOST_TRIPLE}}
           tag: ${{ github.ref }}
+      - name: Upload man page
+        if: matrix.os == 'ubuntu-latest'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: man/git-tcr.1
+          asset_name: git-tcr.1
+          tag: ${{ github.ref }}

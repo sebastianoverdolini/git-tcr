@@ -26,6 +26,17 @@ curl -L https://github.com/sebastianoverdolini/git-tcr/releases/latest/download/
 cargo install --git https://github.com/sebastianoverdolini/git-tcr
 ```
 
+### Man page (optional)
+Since `git tcr` is a git subcommand, `git tcr --help` opens git's own manual
+lookup (`git help tcr`) rather than the binary's built-in `-h`/`--help`.
+Installing the man page makes `git tcr --help` work as expected:
+```
+sudo mkdir -p /usr/local/share/man/man1 && \
+    curl -L https://github.com/sebastianoverdolini/git-tcr/releases/latest/download/git-tcr.1 \
+        | sudo tee /usr/local/share/man/man1/git-tcr.1 > /dev/null
+```
+(`-h` works out of the box either way — this only affects the long `--help` form.)
+
 ## Configuration
 To configure TCR for your project, place a `tcr.yaml` configuration file
 in the root directory of your project. You can create it interactively:

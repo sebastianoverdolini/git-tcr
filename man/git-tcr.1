@@ -1,0 +1,119 @@
+.TH GIT-TCR 1 "2026-09-08" "git-tcr 0.8.0" "git-tcr Manual"
+.SH NAME
+git-tcr \- Test && Commit || Revert, as a git subcommand
+.SH SYNOPSIS
+.B git tcr
+.RI [ OPTIONS ]
+.br
+.B git tcr init
+.SH DESCRIPTION
+.B TCR
+(Test && Commit || Revert) is a variation of test-driven development that
+forces taking small, incremental steps: if tests pass, the changes are
+committed; if they fail, the changes are reverted.
+.PP
+Running
+.B git tcr
+with no arguments stages the working tree, runs the test command(s)
+configured in
+.IR tcr.yaml ,
+and either commits the change or discards it, depending on the result.
+.SH OPTIONS
+.TP
+.BR \-m ", " \-\-message " " \fIMESSAGE\fR
+Use a custom commit message instead of the default
+.BR WIP .
+.TP
+.BR \-\-trailer " " \fITRAILER\fR
+Append a git trailer to the commit message (e.g.
+.IR "Issue: GDT-42" ).
+Can be repeated multiple times.
+.TP
+.BR \-h ", " \-\-help
+Print help.
+.TP
+.BR \-V ", " \-\-version
+Print the git-tcr version. The long form
+.RB ( \-\-version )
+also names the highest
+.I tcr.yaml
+schema version this build understands.
+.SH COMMANDS
+.TP
+.B init
+Interactively create a
+.I tcr.yaml
+configuration file: prompts for one or more test commands and whether
+commits should skip git hooks with
+.BR \-\-no\-verify ,
+then writes the file. Asks before overwriting an existing one.
+.SH CONFIGURATION
+.B git tcr
+reads its configuration from
+.I tcr.yaml
+in the root of the working tree. Run
+.B git tcr init
+to create it interactively, or write it by hand:
+.PP
+.RS
+.nf
+version: 1
+test:
+    program: "cargo"
+    args: ["test"]
+no_verify: false
+.fi
+.RE
+.PP
+To run multiple test commands, declare
+.B test
+as a list instead; commands run in order and stop at the first failure:
+.PP
+.RS
+.nf
+test:
+    \- program: "tsc"
+      args: ["\-\-noEmit"]
+    \- program: "npm"
+      args: ["run", "test"]
+.fi
+.RE
+.SH EXAMPLES
+Run TCR with the default WIP commit message:
+.PP
+.RS
+.nf
+git tcr
+.fi
+.RE
+.PP
+Run TCR with a custom commit message:
+.PP
+.RS
+.nf
+git tcr \-m "feat: add login page"
+.fi
+.RE
+.PP
+Run TCR with a custom message and one or more trailers:
+.PP
+.RS
+.nf
+git tcr \-m "feat: add login page" \-\-trailer "Issue: GDT\-42" \-\-trailer "Reviewed\-by: Alice"
+.fi
+.RE
+.PP
+Create a
+.I tcr.yaml
+interactively:
+.PP
+.RS
+.nf
+git tcr init
+.fi
+.RE
+.SH SEE ALSO
+Full documentation and source:
+.UR https://github.com/sebastianoverdolini/git-tcr
+git-tcr on GitHub
+.UE .
