@@ -106,7 +106,7 @@ mod init_tests {
         run(Path::new(test_dir), "npm test\n\nn\n");
 
         let result = config::yaml_config(Path::new(test_dir));
-        assert_eq!(result, Some(Config {
+        assert_eq!(result, Ok(Config {
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
@@ -126,7 +126,7 @@ mod init_tests {
         run(Path::new(test_dir), "tsc --noEmit\nnpm run test\n\nn\n");
 
         let result = config::yaml_config(Path::new(test_dir));
-        assert_eq!(result, Some(Config {
+        assert_eq!(result, Ok(Config {
             test: TestSpec::Multiple(vec![
                 TestConfig { program: String::from("tsc"), args: vec![String::from("--noEmit")] },
                 TestConfig { program: String::from("npm"), args: vec![String::from("run"), String::from("test")] },
@@ -146,7 +146,7 @@ mod init_tests {
         run(Path::new(test_dir), "npm test\n\ny\n");
 
         let result = config::yaml_config(Path::new(test_dir));
-        assert_eq!(result, Some(Config {
+        assert_eq!(result, Ok(Config {
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
@@ -167,7 +167,7 @@ mod init_tests {
         assert!(output.contains("A test command is required."));
 
         let result = config::yaml_config(Path::new(test_dir));
-        assert_eq!(result, Some(Config {
+        assert_eq!(result, Ok(Config {
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
@@ -192,7 +192,7 @@ mod init_tests {
 
         assert_eq!(wrote, false);
         let result = config::yaml_config(Path::new(test_dir));
-        assert_eq!(result, Some(Config {
+        assert_eq!(result, Ok(Config {
             test: TestSpec::Single(TestConfig {
                 program: String::from("existing"),
                 args: vec![],
@@ -214,7 +214,7 @@ mod init_tests {
         run(Path::new(test_dir), "y\nnpm test\n\nn\n");
 
         let result = config::yaml_config(Path::new(test_dir));
-        assert_eq!(result, Some(Config {
+        assert_eq!(result, Ok(Config {
             test: TestSpec::Single(TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],

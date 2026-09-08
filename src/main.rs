@@ -49,7 +49,7 @@ fn main() -> ExitCode
             }
         }
         None => match yaml_config(current_dir().unwrap()) {
-            Some(configuration) => {
+            Ok(configuration) => {
                 let message_fn: Box<dyn Fn(&str) -> String> = match cli.message {
                     Some(msg) => Box::new(move |_diff: &str| msg.clone()),
                     None => Box::new(wip),
@@ -69,11 +69,8 @@ fn main() -> ExitCode
                     ExitCode::FAILURE
                 }
             },
-            None => {
-                eprintln!("\
-                Error: 'tcr.yaml' not found in the current directory. \
-                Please create the configuration file to proceed. \
-                Run 'git tcr init' to create one interactively.");
+            Err(err) => {
+                eprintln!("Error: {err}");
                 ExitCode::FAILURE
             }
         }
