@@ -16,10 +16,17 @@ impl Repository for GitRepository {
     }
 
     fn revert(&self) {
+        // `git reset --hard` can't take a pathspec, so a plain call would
+        // revert the whole repository rather than just the current
+        // directory. These three commands are the pathspec-scoped
+        // equivalent: unstage under `.`, restore tracked content under `.`
+        // from the now-matching index, then remove what's left untracked.
+        (self.exec)(&mut Command::new("git").args(["reset", "HEAD", "--", "."]))
+            .expect("unstage command works");
+        (self.exec)(&mut Command::new("git").args(["checkout", "--", "."]))
+            .expect("checkout command works");
         (self.exec)(&mut Command::new("git").args(["clean", "-fdq", "."]))
             .expect("clean command works");
-        (self.exec)(&mut Command::new("git").args(["reset", "--hard"]))
-            .expect("revert command works");
     }
 
     fn commit(&self) {
@@ -119,9 +126,10 @@ mod git_test {
         };
         git.revert();
         let calls = captured_calls.borrow();
-        assert_eq!(calls.len(), 2);
-        assert_eq!(calls[0], ("git".to_string(), vec!["clean".to_string(), "-fdq".to_string(), ".".to_string()]));
-        assert_eq!(calls[1], ("git".to_string(), vec!["reset".to_string(), "--hard".to_string()]));
+        assert_eq!(calls.len(), 3);
+        assert_eq!(calls[0], ("git".to_string(), vec!["reset".to_string(), "HEAD".to_string(), "--".to_string(), ".".to_string()]));
+        assert_eq!(calls[1], ("git".to_string(), vec!["checkout".to_string(), "--".to_string(), ".".to_string()]));
+        assert_eq!(calls[2], ("git".to_string(), vec!["clean".to_string(), "-fdq".to_string(), ".".to_string()]));
     }
 
     #[test]
