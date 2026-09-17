@@ -1,15 +1,15 @@
 use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
-use crate::config::{Config, TestConfig, TestSpec, MAX_SUPPORTED_VERSION};
+use crate::config::{Config, TestConfig, MAX_SUPPORTED_VERSION};
 
 /// Interactively builds a `tcr.yaml` in `location`, prompting on `output`
 /// and reading answers from `input`.
 ///
-/// Each test command is actually run (via `run`) before being kept: a
+/// The test command is actually run (via `run`) before being kept: a
 /// command that fails to run successfully is rejected automatically,
 /// without asking, and the user has to type it again. One that runs
-/// successfully is still confirmed with the user before being added, in
+/// successfully is still confirmed with the user before being kept, in
 /// case it ran but isn't the command they meant to use.
 ///
 /// Returns `Ok(true)` if the file was written, `Ok(false)` if the user
@@ -32,23 +32,15 @@ pub fn init(
         }
     }
 
-    let mut tests = Vec::new();
-    loop {
-        if tests.is_empty() {
-            write!(output, "Test command: ")?;
-        } else {
-            write!(output, "Another test command (blank to finish): ")?;
-        }
+    let test = loop {
+        write!(output, "Test command: ")?;
         output.flush()?;
 
         let line = read_line(input)?;
         let line = line.trim();
         if line.is_empty() {
-            if tests.is_empty() {
-                writeln!(output, "E: a test command is required")?;
-                continue;
-            }
-            break;
+            writeln!(output, "E: a test command is required")?;
+            continue;
         }
 
         let mut parts = line.split_whitespace();
@@ -70,24 +62,19 @@ pub fn init(
         }
         writeln!(output, "done")?;
 
-        write!(output, "Add this test command? [Y/n] ")?;
+        write!(output, "Use this test command? [Y/n] ")?;
         output.flush()?;
         if !read_answer(input, true)? {
             continue;
         }
 
-        tests.push(TestConfig { program, args });
-    }
+        break TestConfig { program, args };
+    };
 
     write!(output, "Skip git hooks (--no-verify)? [y/N] ")?;
     output.flush()?;
     let no_verify = read_answer(input, false)?;
 
-    let test = if tests.len() == 1 {
-        TestSpec::Single(tests.remove(0))
-    } else {
-        TestSpec::Multiple(tests)
-    };
     let config = Config {
         version: MAX_SUPPORTED_VERSION,
         test,
@@ -192,7 +179,7 @@ mod init_tests {
     use std::path::Path;
     use std::process::{Command, ExitStatus};
     use crate::config;
-    use crate::config::{Config, TestConfig, TestSpec, MAX_SUPPORTED_VERSION};
+    use crate::config::{Config, TestConfig, MAX_SUPPORTED_VERSION};
     use super::{indent_sequences, init};
 
     /// A fake `run` that reports every command as having run successfully,
@@ -267,36 +254,15 @@ no_verify: false
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        run(Path::new(test_dir), "npm test\n\n\nn\n\n");
+        run(Path::new(test_dir), "npm test\n\nn\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
             version: MAX_SUPPORTED_VERSION,
-            test: TestSpec::Single(TestConfig {
+            test: TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
-            }),
-            no_verify: Some(false),
-        }));
-
-        remove_dir_all(test_dir).expect("Failed to remove test directory");
-    }
-
-    #[test]
-    fn it_writes_multiple_test_commands() {
-        let test_dir = "test-env-init-multiple";
-        let _ = remove_dir_all(test_dir);
-        create_dir_all(test_dir).expect("Failed to create test directory");
-
-        run(Path::new(test_dir), "tsc --noEmit\n\nnpm run test\n\n\nn\n\n");
-
-        let result = config::yaml_config(Path::new(test_dir));
-        assert_eq!(result, Ok(Config {
-            version: MAX_SUPPORTED_VERSION,
-            test: TestSpec::Multiple(vec![
-                TestConfig { program: String::from("tsc"), args: vec![String::from("--noEmit")] },
-                TestConfig { program: String::from("npm"), args: vec![String::from("run"), String::from("test")] },
-            ]),
+            },
             no_verify: Some(false),
         }));
 
@@ -309,15 +275,15 @@ no_verify: false
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        run(Path::new(test_dir), "npm test\n\n\ny\n\n");
+        run(Path::new(test_dir), "npm test\n\ny\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
             version: MAX_SUPPORTED_VERSION,
-            test: TestSpec::Single(TestConfig {
+            test: TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
-            }),
+            },
             no_verify: Some(true),
         }));
 
@@ -330,16 +296,16 @@ no_verify: false
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        let output = run(Path::new(test_dir), "\n\nnpm test\n\n\nn\n\n");
+        let output = run(Path::new(test_dir), "\n\nnpm test\n\nn\n\n");
         assert!(output.contains("E: a test command is required"));
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
             version: MAX_SUPPORTED_VERSION,
-            test: TestSpec::Single(TestConfig {
+            test: TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
-            }),
+            },
             no_verify: Some(false),
         }));
 
@@ -372,24 +338,24 @@ no_verify: false
 
         let output = run_with(
             Path::new(test_dir),
-            "badcmd\nnpm test\n\n\nn\n\n",
+            "badcmd\nnpm test\n\nn\n\n",
             &fails_for("badcmd"),
         );
         assert!(output.contains("E: command failed, try again"), "output was: {output}");
         // Only the successful retry ("npm test") should ever reach the
         // confirmation prompt — the failed "badcmd" attempt must not.
         assert_eq!(
-            output.matches("Add this test command?").count(), 1,
+            output.matches("Use this test command?").count(), 1,
             "expected exactly one confirmation prompt, output was: {output}"
         );
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
             version: MAX_SUPPORTED_VERSION,
-            test: TestSpec::Single(TestConfig {
+            test: TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
-            }),
+            },
             no_verify: Some(false),
         }));
 
@@ -402,15 +368,15 @@ no_verify: false
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        run(Path::new(test_dir), "npm test\nn\nnpm run test\n\n\nn\n\n");
+        run(Path::new(test_dir), "npm test\nn\nnpm run test\n\nn\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
             version: MAX_SUPPORTED_VERSION,
-            test: TestSpec::Single(TestConfig {
+            test: TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("run"), String::from("test")],
-            }),
+            },
             no_verify: Some(false),
         }));
 
@@ -423,7 +389,7 @@ no_verify: false
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        let output = run(Path::new(test_dir), "npm test\n\n\nn\n\n");
+        let output = run(Path::new(test_dir), "npm test\n\nn\n\n");
 
         assert!(output.contains("program: npm"), "output was: {output}");
         assert!(output.contains("Write it to tcr.yaml?"), "output was: {output}");
@@ -437,7 +403,7 @@ no_verify: false
         let _ = remove_dir_all(test_dir);
         create_dir_all(test_dir).expect("Failed to create test directory");
 
-        let mut input = Cursor::new(b"npm test\n\n\nn\nn\n".to_vec());
+        let mut input = Cursor::new(b"npm test\n\nn\nn\n".to_vec());
         let mut output = Vec::new();
         let wrote = init(Path::new(test_dir), &mut input, &mut output, &succeeds).expect("init succeeds");
 
@@ -462,11 +428,12 @@ no_verify: false
         assert_eq!(wrote, false);
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
-            version: MAX_SUPPORTED_VERSION,
-            test: TestSpec::Single(TestConfig {
+            // The untouched file declares no version, so it reads as 1.
+            version: 1,
+            test: TestConfig {
                 program: String::from("existing"),
                 args: vec![],
-            }),
+            },
             no_verify: None,
         }));
 
@@ -481,15 +448,15 @@ no_verify: false
         write(format!("{}/tcr.yaml", test_dir), "test:\n  program: \"existing\"\n  args: []\n")
             .expect("Failed to write existing config");
 
-        run(Path::new(test_dir), "y\nnpm test\n\n\nn\n\n");
+        run(Path::new(test_dir), "y\nnpm test\n\nn\n\n");
 
         let result = config::yaml_config(Path::new(test_dir));
         assert_eq!(result, Ok(Config {
             version: MAX_SUPPORTED_VERSION,
-            test: TestSpec::Single(TestConfig {
+            test: TestConfig {
                 program: String::from("npm"),
                 args: vec![String::from("test")],
-            }),
+            },
             no_verify: Some(false),
         }));
 

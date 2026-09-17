@@ -1,4 +1,4 @@
-.TH GIT-TCR 1 "2026-09-08" "git-tcr 0.8.0" "git-tcr Manual"
+.TH GIT-TCR 1 "2026-09-17" "git-tcr 0.9.0" "git-tcr Manual"
 .SH NAME
 git-tcr \- Test && Commit || Revert, as a git subcommand
 .SH SYNOPSIS
@@ -14,7 +14,7 @@ committed; if they fail, the changes are reverted.
 .PP
 Running
 .B git tcr
-with no arguments stages the working tree, runs the test command(s)
+with no arguments stages the working tree, runs the test command
 configured in
 .IR tcr.yaml ,
 and either commits the change or discards it, depending on the result.
@@ -43,7 +43,7 @@ schema version this build understands.
 .B init
 Interactively create a
 .I tcr.yaml
-configuration file: prompts for one or more test commands and whether
+configuration file: prompts for the test command and whether
 commits should skip git hooks with
 .BR \-\-no\-verify ,
 then writes the file. Asks before overwriting an existing one.
@@ -57,7 +57,7 @@ to create it interactively, or write it by hand:
 .PP
 .RS
 .nf
-version: 1
+version: 2
 test:
     program: "cargo"
     args: ["test"]
@@ -65,19 +65,16 @@ no_verify: false
 .fi
 .RE
 .PP
-To run multiple test commands, declare
 .B test
-as a list instead; commands run in order and stop at the first failure:
-.PP
-.RS
-.nf
-test:
-    \- program: "tsc"
-      args: ["\-\-noEmit"]
-    \- program: "npm"
-      args: ["run", "test"]
-.fi
-.RE
+is a single command on purpose. If verifying the project takes more than
+one step (type\-check, unit tests, lint, ...), put those steps in a
+script the build tool already knows about (a Makefile target, an
+.B npm run
+script, an
+.B nx
+target, a shell script) and point
+.B tcr.yaml
+at that.
 .SH EXAMPLES
 Run TCR with the default WIP commit message:
 .PP

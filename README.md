@@ -45,11 +45,11 @@ in the root directory of your project. You can create it interactively:
 git tcr init
 ```
 
-This asks for the test command(s) to run (e.g. `npm test`) and whether
+This asks for the test command to run (e.g. `npm test`) and whether
 commits should skip git hooks with `--no-verify`, then writes `tcr.yaml`
 for you. If a `tcr.yaml` already exists, it asks before overwriting it.
 
-Each test command is actually run before being kept: one that fails to
+The test command is actually run before being kept: one that fails to
 run successfully is rejected automatically, and you're asked to type it
 again. One that runs successfully is still shown to you for confirmation,
 in case it ran but wasn't the command you meant.
@@ -60,7 +60,7 @@ and asks for a final confirmation.
 Alternatively, write the file by hand:
 
 ```yaml
-version: 1 # Optional: the tcr.yaml schema version. Defaults to 1 if omitted.
+version: 2 # Optional: the tcr.yaml schema version. Defaults to 1 if omitted.
 test:
     program: <...> # e.g "cargo"
     args: [...]    # e.g ["test"]
@@ -73,15 +73,23 @@ releases of `git-tcr` won't require bumping it. If a config declares a
 `version` newer than the installed `git-tcr` understands, it refuses to
 run and asks you to upgrade instead of misreading the file.
 
-To run multiple test commands, declare `test` as a list instead. 
-Commands run in order and stop at the first failure:
+| Version | Change |
+|---------|--------|
+| 1 | Initial shape. `test` could be a single command or a list of them. |
+| 2 | `test` is a single command only. A version-1 file that still uses the list form is rejected with a message explaining what to change. |
+
+`test` is a single command on purpose. If verifying your project takes
+more than one step (type-check, then unit tests, then lint, ...), put
+those steps in a script your build tool already knows about — a
+`Makefile` target, an `npm run` script, an `nx` target, a shell
+script — and point `tcr.yaml` at that. Your test command should
+answer one question: "is the system green?" How it gets to the answer
+belongs to your project, not to `tcr.yaml`:
 
 ```yaml
 test:
-    - program: "tsc"
-      args: ["--noEmit"]
-    - program: "npm"
-      args: ["run", "test"]
+    program: "make"
+    args: ["check"]
 ```
 
 ## Usage

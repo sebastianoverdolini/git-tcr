@@ -46,16 +46,14 @@ impl Repository for GitRepository {
     }
 
     fn test(&self) -> bool {
-        self.config.test.as_vec().iter().all(|test_config| {
-            let mut cmd = Command::new(&test_config.program);
-            for arg in &test_config.args {
-                cmd.arg(arg);
-            }
-            (self.exec)(&mut cmd.stdout(std::process::Stdio::inherit())
-                .stderr(std::process::Stdio::inherit()))
-                .map(|output| output.status.success())
-                .unwrap_or(false)
-        })
+        let mut cmd = Command::new(&self.config.test.program);
+        for arg in &self.config.test.args {
+            cmd.arg(arg);
+        }
+        (self.exec)(&mut cmd.stdout(std::process::Stdio::inherit())
+            .stderr(std::process::Stdio::inherit()))
+            .map(|output| output.status.success())
+            .unwrap_or(false)
     }
 }
 
@@ -65,7 +63,7 @@ mod git_test {
     use std::rc::Rc;
     use std::process::{Output, Command};
     use std::os::unix::process::ExitStatusExt;
-    use crate::config::{Config, TestConfig, TestSpec};
+    use crate::config::{Config, TestConfig};
     use crate::tcr::Repository;
 
     fn extract_cmd(cmd: &Command) -> (String, Vec<String>) {
@@ -105,7 +103,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
+            config: Config { version: 1, test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
@@ -120,7 +118,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
+            config: Config { version: 1, test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
@@ -137,7 +135,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(true) },
+            config: Config { version: 1, test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(true) },
             message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
@@ -153,7 +151,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: Some(false) },
+            config: Config { version: 1, test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: Some(false) },
             message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
@@ -169,7 +167,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: None },
+            config: Config { version: 1, test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: None },
             message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec![],
         };
@@ -185,7 +183,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "foo".to_string(), args: vec![] }), no_verify: None },
+            config: Config { version: 1, test: TestConfig { program: "foo".to_string(), args: vec![] }, no_verify: None },
             message: Box::new(|diff| format!("WIP: {diff}")),
             trailers: vec!["Issue: GDT-1234".to_string(), "Reviewed-by: Gennaro".to_string()],
         };
@@ -209,7 +207,7 @@ mod git_test {
         let (captured_calls, mock_exec) = setup_mock();
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }), no_verify: None },
+            config: Config { version: 1, test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
             message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
@@ -237,7 +235,7 @@ mod git_test {
         };
         let git = super::GitRepository {
             exec: Box::new(mock_exec),
-            config: Config { version: 1, test: TestSpec::Single(TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }), no_verify: None },
+            config: Config { version: 1, test: TestConfig { program: "cargo".to_string(), args: vec!["test".to_string()] }, no_verify: None },
             message: Box::new(|_diff| "WIP".to_string()),
             trailers: vec![],
         };
@@ -248,63 +246,5 @@ mod git_test {
         assert_eq!(result, false);
     }
 
-    #[test]
-    fn test_runs_all_commands_when_they_all_succeed() {
-        let (captured_calls, mock_exec) = setup_mock();
-        let git = super::GitRepository {
-            exec: Box::new(mock_exec),
-            config: Config {
-                version: 1,
-                test: TestSpec::Multiple(vec![
-                    TestConfig { program: "tsc".to_string(), args: vec!["--noEmit".to_string()] },
-                    TestConfig { program: "npm".to_string(), args: vec!["run".to_string(), "test".to_string()] },
-                ]),
-                no_verify: None,
-            },
-            message: Box::new(|_diff| "WIP".to_string()),
-            trailers: vec![],
-        };
-        let result = git.test();
-        let calls = captured_calls.borrow();
-        assert_eq!(calls.len(), 2);
-        assert_eq!(calls[0], ("tsc".to_string(), vec!["--noEmit".to_string()]));
-        assert_eq!(calls[1], ("npm".to_string(), vec!["run".to_string(), "test".to_string()]));
-        assert_eq!(result, true);
-    }
 
-    #[test]
-    fn test_stops_at_the_first_failing_command() {
-        let captured_calls = Rc::new(RefCell::new(Vec::new()));
-        let mock_exec = {
-            let captured_calls = Rc::clone(&captured_calls);
-            move |cmd: &mut Command| {
-                let (program, args) = extract_cmd(cmd);
-                captured_calls.borrow_mut().push((program.clone(), args.clone()));
-                let success = program != "tsc";
-                Ok(Output {
-                    status: std::process::ExitStatus::from_raw(if success { 0 } else { 1 }),
-                    stdout: vec![],
-                    stderr: vec![],
-                })
-            }
-        };
-        let git = super::GitRepository {
-            exec: Box::new(mock_exec),
-            config: Config {
-                version: 1,
-                test: TestSpec::Multiple(vec![
-                    TestConfig { program: "tsc".to_string(), args: vec!["--noEmit".to_string()] },
-                    TestConfig { program: "npm".to_string(), args: vec!["run".to_string(), "test".to_string()] },
-                ]),
-                no_verify: None,
-            },
-            message: Box::new(|_diff| "WIP".to_string()),
-            trailers: vec![],
-        };
-        let result = git.test();
-        let calls = captured_calls.borrow();
-        assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0], ("tsc".to_string(), vec!["--noEmit".to_string()]));
-        assert_eq!(result, false);
-    }
 }
